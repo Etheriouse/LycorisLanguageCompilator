@@ -6,14 +6,14 @@
 
 enum Type_Token
 {
-    String,
-    Integer,
-    Float,
-    Keyword,
-    SpecialChar,
-    Ident,
-    Error,
-    Null,
+    String_t,
+    Integer_t,
+    Float_t,
+    Keyword_t,
+    SpecialChar_t,
+    Ident_t,
+    Error_t,
+    Null_t,
 };
 
 std::string Type_Token_toString(Type_Token t);
@@ -23,6 +23,7 @@ class Lexer
 
 public:
     Lexer(const char *filename, char separator);
+    ~Lexer() = default;
     std::string get_word(Type_Token *t);
     bool is_a_keyword(std::string str);
     void add_keyword(std::string key);
@@ -37,7 +38,7 @@ private:
 
     std::string file;
     std::vector<std::string> keywords;
-    unsigned long int index_file;
+    unsigned long int index_file = 0;
     char separator = ' ';
     char float_separator = '.';
     char str_separator = '"';

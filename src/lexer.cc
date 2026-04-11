@@ -28,9 +28,10 @@ char Lexer::get_char()
 std::string Lexer::get_word(Type_Token *t)
 {
     std::string str;
+    printf("%lu\n", index_file);
     if (index_file == file.size())
     {
-        (*t) = Null;
+        (*t) = Null_t;
         return str;
     }
     while (file[index_file] == separator)
@@ -40,20 +41,20 @@ std::string Lexer::get_word(Type_Token *t)
     if (!isalpha(file[index_file]))
         return get_not_alpha_char(t);
 
-    (*t) = Ident;
+    (*t) = Ident_t;
     while (file[index_file] != separator)
     {
         if (!isalpha(file[index_file]))
         {
             if (is_a_keyword(str))
-                (*t) = Keyword;
+                (*t) = Keyword_t;
             return str;
         }
         str += file[index_file];
         index_file++;
     }
     if (is_a_keyword(str))
-        (*t) = Keyword;
+        (*t) = Keyword_t;
     return str;
 }
 
@@ -62,7 +63,7 @@ std::string Lexer::get_not_alpha_char(Type_Token *t)
 
     if (file[index_file] == float_separator)
     {
-        (*t) = Float;
+        (*t) = Float_t;
         std::string str_num;
         do
         {
@@ -73,7 +74,7 @@ std::string Lexer::get_not_alpha_char(Type_Token *t)
     }
     else if (isdigit(file[index_file]))
     {
-        (*t) = Integer;
+        (*t) = Integer_t;
         std::string str_num;
         char nb_float_sep = 0;
         while (isdigit(file[index_file]) || file[index_file] == float_separator)
@@ -81,13 +82,13 @@ std::string Lexer::get_not_alpha_char(Type_Token *t)
             if (file[index_file] == float_separator)
             {
                 nb_float_sep++;
-                (*t) = Float;
+                (*t) = Float_t;
             }
             str_num += file[index_file];
             index_file++;
             if (nb_float_sep > 1)
             {
-                (*t) = Error;
+                (*t) = Error_t;
                 return "ERROR";
             }
         }
@@ -95,11 +96,12 @@ std::string Lexer::get_not_alpha_char(Type_Token *t)
     }
     else if (file[index_file] == str_separator)
     {
-        (*t) = String;
+        (*t) = String_t;
         std::string str_;
         get_char();
-        while(file[index_file] != str_separator) {
-            str_+=file[index_file];
+        while (file[index_file] != str_separator)
+        {
+            str_ += file[index_file];
             index_file++;
         }
         get_char();
@@ -108,7 +110,7 @@ std::string Lexer::get_not_alpha_char(Type_Token *t)
     else
     {
         std::string str;
-        (*t) = SpecialChar;
+        (*t) = SpecialChar_t;
         return str + file[index_file++];
     }
 }
@@ -152,17 +154,17 @@ std::string Type_Token_toString(Type_Token t)
 {
     switch (t)
     {
-    case String:
+    case String_t:
         return "String";
-    case Integer:
+    case Integer_t:
         return "Integer";
-    case Float:
+    case Float_t:
         return "Float";
-    case Keyword:
+    case Keyword_t:
         return "Keyword";
-    case SpecialChar:
+    case SpecialChar_t:
         return "SpecialChar";
-    case Ident:
+    case Ident_t:
         return "Ident";
     default:
         return "Unknown";

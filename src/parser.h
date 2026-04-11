@@ -7,9 +7,12 @@ class Parser
 {
 
 public:
-    Parser();
+    Parser(const char *program_filename, const char *config_filename);
+    ~Parser();
+    void parse();
 
 private:
+    Lexer *lexer;
 
 };
 
