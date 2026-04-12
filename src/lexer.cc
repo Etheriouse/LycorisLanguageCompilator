@@ -9,109 +9,173 @@ Lexer::Lexer(const char *filename, char separtor)
     std::string str;
     while (getline(file, str))
     {
-        this->file += str;
+        this->file += str + "\n";
     }
     this->separator = separtor;
 }
 
 char Lexer::get_char()
 {
-    if (index_file > file.size() - 1)
+    if (index > file.size() - 1)
     {
-        index_file = 0;
+        index = 0;
         return '\0';
     }
-    index_file++;
-    return file[index_file - 1];
+    incrIndex();
+    return file[index - 1];
 }
 
-std::string Lexer::get_word(Type_Token *t)
+std::string Lexer::get_word(Token *t)
 {
     std::string str;
-    printf("%lu\n", index_file);
-    if (index_file == file.size())
+    if (index >= file.size())
     {
-        (*t) = Null_t;
+        (*t) = Token::Null;
         return str;
     }
-    while (file[index_file] == separator)
+    while (file[index] == separator || file[index] == '\n')
     {
-        index_file++;
+        incrIndex();
     }
-    if (!isalpha(file[index_file]))
+    if (!isalpha(file[index]))
         return get_not_alpha_char(t);
 
-    (*t) = Ident_t;
-    while (file[index_file] != separator)
+    (*t) = Token::Ident;
+    while (file[index] != separator)
     {
-        if (!isalpha(file[index_file]))
+        if (!isalpha(file[index]))
         {
             if (is_a_keyword(str))
-                (*t) = Keyword_t;
+                (*t) = Token::Keyword;
             return str;
         }
-        str += file[index_file];
-        index_file++;
+        str += file[index];
+        incrIndex();
     }
     if (is_a_keyword(str))
-        (*t) = Keyword_t;
+        (*t) = Token::Keyword;
+
     return str;
 }
 
-std::string Lexer::get_not_alpha_char(Type_Token *t)
+std::string get_special_char(char c, Token *t);
+
+std::string Lexer::get_not_alpha_char(Token *t)
 {
 
-    if (file[index_file] == float_separator)
+    if (file[index] == float_separator)
     {
-        (*t) = Float_t;
+        (*t) = Token::Float;
         std::string str_num;
         do
         {
-            str_num += file[index_file];
-            index_file++;
-        } while (isdigit(file[index_file]));
+            str_num += file[index];
+            incrIndex();
+        } while (isdigit(file[index]));
         return str_num;
     }
-    else if (isdigit(file[index_file]))
+    else if (isdigit(file[index]))
     {
-        (*t) = Integer_t;
+        (*t) = Token::Integer;
         std::string str_num;
         char nb_float_sep = 0;
-        while (isdigit(file[index_file]) || file[index_file] == float_separator)
+        while (isdigit(file[index]) || file[index] == float_separator)
         {
-            if (file[index_file] == float_separator)
+            if (file[index] == float_separator)
             {
                 nb_float_sep++;
-                (*t) = Float_t;
+                (*t) = Token::Float;
             }
-            str_num += file[index_file];
-            index_file++;
+            str_num += file[index];
+            incrIndex();
             if (nb_float_sep > 1)
             {
-                (*t) = Error_t;
+                (*t) = Token::Error;
                 return "ERROR";
             }
         }
         return str_num;
     }
-    else if (file[index_file] == str_separator)
+    else if (file[index] == str_separator)
     {
-        (*t) = String_t;
+        (*t) = Token::String;
         std::string str_;
         get_char();
-        while (file[index_file] != str_separator)
+        while (file[index] != str_separator)
         {
-            str_ += file[index_file];
-            index_file++;
+            str_ += file[index];
+            incrIndex();
         }
         get_char();
         return str_;
     }
     else
     {
-        std::string str;
-        (*t) = SpecialChar_t;
-        return str + file[index_file++];
+        return get_special_char(file[incrIndex()], t);
+    }
+}
+
+std::string get_special_char(char c, Token *t)
+{
+    switch (c)
+    {
+    case '[':
+        (*t) = Token::LSBracket;
+        return "[";
+    case ']':
+        (*t) = Token::RSBracket;
+        return "]";
+    case '{':
+        (*t) = Token::LBracket;
+        return "{";
+    case '}':
+        (*t) = Token::RBracket;
+        return "}";
+    case '(':
+        (*t) = Token::LParen;
+        return "(";
+    case ')':
+        (*t) = Token::RParen;
+        return ")";
+    case ';':
+        (*t) = Token::SemiColon;
+        return ";";
+    case '+':
+        (*t) = Token::Add;
+        return "+";
+    case '-':
+        (*t) = Token::Sub;
+        return "-";
+    case '*':
+        (*t) = Token::Star;
+        return "*";
+    case '/':
+        (*t) = Token::Div;
+        return "/";
+    case '=':
+        (*t) = Token::Eq;
+        return "=";
+    case '!':
+        (*t) = Token::Not;
+        return "!";
+    case '<':
+        (*t) = Token::LCrochet;
+        return "<";
+    case '>':
+        (*t) = Token::RCrochet;
+        return ">";
+    case '%':
+        (*t) = Token::Mod;
+        return "%";
+    case '|':
+        (*t) = Token::Bar;
+        return "|";
+    case '&':
+        (*t) = Token::Esperluet;
+        return "&";
+    default:
+        (*t) = Token::Error;
+        return "Error";
     }
 }
 
@@ -149,23 +213,72 @@ void Lexer::set_str_separator(char separator)
 {
     this->str_separator = separator;
 }
-
-std::string Type_Token_toString(Type_Token t)
+std::string special_char_token_print(Token t);
+std::string Type_Token_toString(Token t)
 {
     switch (t)
     {
-    case String_t:
+    case Token::String:
         return "String";
-    case Integer_t:
+    case Token::Integer:
         return "Integer";
-    case Float_t:
+    case Token::Float:
         return "Float";
-    case Keyword_t:
+    case Token::Keyword:
         return "Keyword";
-    case SpecialChar_t:
-        return "SpecialChar";
-    case Ident_t:
+    case Token::Ident:
         return "Ident";
+    case Token::Boolean:
+        return "Boolean";
+    case Token::Null:
+        return "Null";
+    case Token::Error:
+        return "Error";
+    default:
+        return special_char_token_print(t);
+    }
+}
+
+std::string special_char_token_print(Token t)
+{
+    switch (t)
+    {
+    case Token::LSBracket:
+        return "[";
+    case Token::RSBracket:
+        return "]";
+    case Token::LBracket:
+        return "{";
+    case Token::RBracket:
+        return "}";
+    case Token::LParen:
+        return "(";
+    case Token::RParen:
+        return ")";
+    case Token::SemiColon:
+        return ";";
+    case Token::Add:
+        return "+";
+    case Token::Sub:
+        return "-";
+    case Token::Star:
+        return "*";
+    case Token::Div:
+        return "/";
+    case Token::Eq:
+        return "=";
+    case Token::Not:
+        return "!";
+    case Token::LCrochet:
+        return "<";
+    case Token::RCrochet:
+        return ">";
+    case Token::Mod:
+        return "%";
+    case Token::Bar:
+        return "|";
+    case Token::Esperluet:
+        return "&";
     default:
         return "Unknown";
     }

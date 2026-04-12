@@ -3,6 +3,13 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
+
+template <typename T>
+class List;
+
+template <typename T>
+std::ostream& operator<<(std::ostream&, const List<T>&);
 
 template <typename T>
 class List
@@ -22,25 +29,29 @@ public:
         return true;
     }
 
-    bool add(u_int64_t index, T element) {
+    bool add(u_int64_t index, T element)
+    {
         arr.insert(index, element);
         length = arr.size();
         return true;
     }
 
-    bool remove(u_int64_t index) {
-        arr.erase(arr.begin()+index);
+    bool remove(u_int64_t index)
+    {
+        arr.erase(arr.begin() + index);
         length = arr.size();
         return true;
     }
 
-    bool remove() {
+    bool remove()
+    {
         arr.pop_back();
         return true;
     }
 
-    T pop() {
-        T element = arr.at(arr.end());
+    T pop()
+    {
+        T element = arr.back();
         arr.pop_back();
         length = arr.size();
         return element;
@@ -58,6 +69,9 @@ public:
 
 private:
     std::vector<T> arr;
+
+    template <typename U>
+    friend std::ostream &operator<<(std::ostream &, const List<U> &);
 };
 
 template <typename T>
