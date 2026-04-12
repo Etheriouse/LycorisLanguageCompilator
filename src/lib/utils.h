@@ -28,6 +28,15 @@ enum class Operator
     Gt
 };
 
+enum class Type
+{
+    Integer,
+    String,
+    Float,
+    Bool,
+    Null
+};
+
 template <typename T>
 class Optional
 {
@@ -61,5 +70,6 @@ private:
 };
 
 std::string to_string_op(Operator op);
+std::string TypeToString(Type t);
 std::vector<std::string> split(const std::string &str, char delimiter);
 #endif

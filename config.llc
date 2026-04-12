@@ -1,4 +1,5 @@
 separator=' '
-keyword='int bool float string if else while for switch case true false define'
+bool_keyword='true false'
+keyword='int bool float string if else while for switch case define'
 str_separator='"'
 float_separator='.'

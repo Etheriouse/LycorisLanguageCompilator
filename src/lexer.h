@@ -44,11 +44,13 @@ public:
     Lexer(const char *filename, char separator);
     ~Lexer() = default;
     std::string get_word(Token *t);
+    bool is_a_bool_keyword(std::string str);
     bool is_a_keyword(std::string str);
     void add_keyword(std::string key);
     char get_char();
 
     void set_keyword_list(std::vector<std::string> l_key);
+    void set_bool_keyword_list(std::vector<std::string> l_key);
     void set_float_separator(char separator);
     void set_str_separator(char separator);
 
@@ -81,6 +83,7 @@ private:
 
     std::string file;
     std::vector<std::string> keywords;
+    std::vector<std::string> bool_keywords;
     u_int64_t index = 0;
     u_int64_t index_line = 1;
     u_int64_t index_file = 1;

@@ -40,6 +40,24 @@ std::string to_string_op(Operator op)
     return "error operator not defined";
 }
 
+std::string TypeToString(Type t) {
+    switch (t)
+    {
+    case Type::Integer:
+        return "int";
+    case Type::String:
+        return "string";
+    case Type::Float:
+        return "float";
+    case Type::Bool:
+        return "bool";
+    case Type::Null:
+        return "null";
+    }
+    return "Error";
+}
+
+
 std::vector<std::string> split(const std::string &str, char delimiter)
 {
     std::vector<std::string> tokens;

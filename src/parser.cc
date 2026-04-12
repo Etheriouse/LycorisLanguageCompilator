@@ -57,9 +57,140 @@ Parser::~Parser()
     delete lexer;
 }
 
-Expression *Parser::parse()
+Instruction *Parser::parse()
 {
-    return parseExpression();
+    return parseInstruction();
+}
+
+Instruction *Parser::parseInstruction()
+{
+    if (quit)
+        return Block::getEmpty();
+    Instruction *i;
+    switch (actual)
+    {
+    case Token::Keyword:
+    {
+        i = parseKeyword();
+        break;
+    }
+
+    case Token::Ident:
+    {
+        if (next != Token::Eq)
+        {
+            printf("Parser::parseInstruction, Equal sign not present at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            quit = true;
+            break;
+        }
+        std::string name = str;
+        nextToken();
+        nextToken();
+        Expression *expr = parseExpression();
+        i = new Affectation(name, expr);
+        if (actual != Token::SemiColon)
+        {
+            printf("Parser::parseInstruction, affect instruction SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            quit = true;
+            break;
+        }
+        nextToken();
+        break;
+    }
+
+    case Token::LBracket:
+    {
+        nextToken();
+        List<Instruction *> list;
+        while (actual != Token::RBracket)
+        {
+            list.append(parseInstruction());
+        }
+        nextToken();
+        i = new Block(list);
+        break;
+    }
+    default:
+        printf("Parser::parseInstruction, Invalide instruction at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+        quit = true;
+        i = Block::getEmpty();
+        break;
+    }
+    return i;
+}
+
+Instruction *Parser::parseKeyword()
+{
+    if (str == "if")
+    {
+        return parseIf();
+    }
+    else if (str == "while")
+    {
+        return parseWhile();
+    }
+    else if (str == "int" || str == "bool" || str == "float" || str == "string")
+    {
+        return parseDeclaration();
+    }
+    printf("Parser::parseKeyword, Undefined keyword %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+    return Block::getEmpty();
+}
+
+Instruction *Parser::parseIf()
+{
+    nextToken();
+    Expression *e = parseExpression();
+    Instruction *then = parseInstruction();
+    if (actual == Token::Keyword && str == "else")
+    {
+        nextToken();
+        Instruction *else_ = parseInstruction();
+        return new If(e, then, Optional<Instruction *>::of(&else_));
+    }
+    return new If(e, then, Optional<Instruction *>::empty());
+}
+
+Instruction *Parser::parseWhile()
+{
+    nextToken();
+    Expression *e = parseExpression();
+    Instruction *then = parseInstruction();
+    return new While(e, then);
+}
+
+Instruction *Parser::parseDeclaration()
+{
+    Type t = Type::Null;
+    if (str == "int")
+    {
+        t = Type::Integer;
+    }
+    else if (str == "bool")
+    {
+        t = Type::Bool;
+    }
+    else if (str == "float")
+    {
+        t = Type::Float;
+    }
+    else if (str == "string")
+    {
+        t = Type::String;
+    }
+    nextToken();
+    std::string name = str;
+    nextToken();
+    nextToken();
+    Expression *e = parseExpression();
+    Instruction *i = new Declaration(t, name, e);
+    if (actual != Token::SemiColon)
+    {
+        printf("Parser::parseDeclaration, declartion SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+        quit = true;
+    }
+    nextToken();
+    return i;
 }
 
 Expression *Parser::parseExpression()
@@ -84,7 +215,6 @@ Expression *Parser::parseXor()
     {
         Operator op = Operator::Xor;
         nextToken();
-        std::cout << "xor detected" << std::endl;
         nextToken();
 
         Expression *right = parseAnd();
@@ -145,10 +275,8 @@ Expression *Parser::parseCompare()
         (actual == Token::RCrochet /* && next != Token::LCrochet*/))
     {
         Operator op = getOpFromToken(actual, next);
-        std::cout << "compar detected" << std::endl;
         if (!(op == Operator::Gt || op == Operator::Lt))
         {
-            std::cout << "ge or le" << std::endl;
             nextToken();
         }
         nextToken();
@@ -209,19 +337,22 @@ Expression *Parser::parseAtoms()
     {
     case Token::Integer:
         expr = new Integer(stoi(str.c_str()));
-        std::cout << "int register " << stoi(str.c_str()) << std::endl;
         break;
     case Token::Float:
         expr = new Float(stof(str.c_str()));
-        std::cout << "float register " << stof(str.c_str()) << std::endl;
         break;
     case Token::Boolean:
         expr = new Boolean(str == "true");
-        std::cout << "bool register " << str << std::endl;
         break;
     case Token::String:
         expr = new String(str);
-        std::cout << "str register " << str << std::endl;
+        break;
+
+    case Token::Ident:
+        if (next != Token::LParen)
+        {
+            expr = new Variable(str);
+        }
         break;
 
     case Token::LParen:

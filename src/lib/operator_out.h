@@ -5,6 +5,6 @@
 
 std::ostream &operator<<(std::ostream &os, const Expression &expr);
 std::ostream &operator<<(std::ostream &os, const Instruction &instr);
-
+std::ostream &operator<<(std::ostream &os, const Program &pr);
 
 #endif

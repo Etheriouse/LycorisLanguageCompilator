@@ -45,6 +45,8 @@ std::string Lexer::get_word(Token *t)
     {
         if (!isalpha(file[index]))
         {
+            if (is_a_bool_keyword(str))
+                (*t) = Token::Boolean;
             if (is_a_keyword(str))
                 (*t) = Token::Keyword;
             return str;
@@ -191,6 +193,18 @@ bool Lexer::is_a_keyword(std::string str)
     return false;
 }
 
+bool Lexer::is_a_bool_keyword(std::string str)
+{
+    for (unsigned long int i = 0; i < bool_keywords.size(); i++)
+    {
+        if (bool_keywords[i] == str)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void Lexer::add_keyword(std::string key)
 {
     this->keywords.push_back(key);
@@ -201,6 +215,14 @@ void Lexer::set_keyword_list(std::vector<std::string> l_key)
     for (unsigned long int i = 0; i < l_key.size(); i++)
     {
         this->keywords.push_back(l_key[i]);
+    }
+}
+
+void Lexer::set_bool_keyword_list(std::vector<std::string> l_key)
+{
+    for (unsigned long int i = 0; i < l_key.size(); i++)
+    {
+        this->bool_keywords.push_back(l_key[i]);
     }
 }
 

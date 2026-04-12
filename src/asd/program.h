@@ -12,9 +12,24 @@ public:
     virtual ~Expression() = default;
 };
 
-class String : public Expression
+class Value : public Expression
 {
 public:
+    virtual std::string to_string() const override = 0;
+    virtual int getInt() { throw std::runtime_error("Not an int"); }
+    virtual bool getBool() { throw std::runtime_error("Not an bool"); }
+    virtual float getFloat() { throw std::runtime_error("Not an float"); }
+    virtual std::string getString() { throw std::runtime_error("Not an string"); }
+};
+
+class String : public Value
+{
+public:
+    std::string getString() override
+    {
+        return value;
+    }
+
     std::string to_string() const override
     {
         return "\"" + value + "\"";
@@ -26,9 +41,13 @@ public:
     std::string value;
 };
 
-class Integer : public Expression
+class Integer : public Value
 {
 public:
+    int getInt() override
+    {
+        return value;
+    }
     std::string to_string() const override
     {
         return std::to_string(value);
@@ -40,9 +59,13 @@ public:
     int value;
 };
 
-class Float : public Expression
+class Float : public Value
 {
 public:
+    float getFloat() override
+    {
+        return value;
+    }
     std::string to_string() const override
     {
         return std::to_string(value);
@@ -54,9 +77,13 @@ public:
     float value;
 };
 
-class Boolean : public Expression
+class Boolean : public Value
 {
 public:
+    bool getBool() override
+    {
+        return value;
+    }
     std::string to_string() const override
     {
         if (value)
@@ -73,6 +100,20 @@ public:
         value = b;
     }
     bool value;
+};
+
+class Variable : public Expression
+{
+public:
+    std::string to_string() const override
+    {
+        return "var: " + name;
+    }
+    Variable(std::string str)
+    {
+        name = str;
+    }
+    std::string name;
 };
 
 class BinOp : public Expression
@@ -129,25 +170,17 @@ class If : public Instruction
 public:
     std::string to_string() const override
     {
-        std::string str = "if" + expr->to_string() + "{\n";
-
-        for (size_t i = 0; i < Tinstr.length; i++)
-        {
-            str += Tinstr[i]->to_string();
-        }
+        std::string str = "if" + expr->to_string() + "\n";
+        str += Tinstr->to_string();
         if (!Einstr.isEmpty())
         {
-            str += "} else {\n";
-            List<Instruction *> e = (*Einstr.get());
-            for (size_t i = 0; i < Tinstr.length; i++)
-            {
-                str += e[i]->to_string();
-            }
+            str += "else\n";
+            str += (*Einstr.get())->to_string();
         }
-        return str + "}\n";
+        return str + "\n";
     }
 
-    If(Expression *expr, List<Instruction *> tinstr, Optional<List<Instruction *>> einstr)
+    If(Expression *expr, Instruction *tinstr, Optional<Instruction *> einstr)
     {
         this->expr = expr;
         this->Tinstr = tinstr;
@@ -157,22 +190,15 @@ public:
     ~If()
     {
         delete expr;
-        for (size_t i = 0; i < Tinstr.length; i++)
-        {
-            delete Tinstr[i];
-        }
+        delete Tinstr;
         if (!Einstr.isEmpty())
         {
-            List<Instruction *> e = (*Einstr.get());
-            for (size_t i = 0; i < Tinstr.length; i++)
-            {
-                delete e[i];
-            }
+            delete (*Einstr.get());
         }
     }
 
-    List<Instruction *> Tinstr;           // then
-    Optional<List<Instruction *>> Einstr; // else
+    Instruction *Tinstr;            // then
+    Optional<Instruction *> Einstr; // else
     Expression *expr;
 };
 
@@ -181,16 +207,12 @@ class While : public Instruction
 public:
     std::string to_string() const override
     {
-        std::string str = "while" + expr->to_string() + "{\n";
-
-        for (size_t i = 0; i < Tinstr.length; i++)
-        {
-            str += Tinstr[i]->to_string();
-        }
+        std::string str = "while" + expr->to_string() + "\n";
+        str += Tinstr->to_string();
         return str + "}\n";
     }
 
-    While(Expression *expr, List<Instruction *> tinstr)
+    While(Expression *expr, Instruction *tinstr)
     {
         this->expr = expr;
         this->Tinstr = tinstr;
@@ -199,32 +221,99 @@ public:
     ~While()
     {
         delete expr;
-        for (size_t i = 0; i < Tinstr.length; i++)
-        {
-            delete Tinstr[i];
-        }
+        delete Tinstr;
     }
 
-    List<Instruction *> Tinstr;           // then
+    Instruction *Tinstr; // then
     Expression *expr;
 };
 
+class Declaration : public Instruction
+{
+public:
+    std::string to_string() const override
+    {
+        return TypeToString(type) + " " + name + " = " + value->to_string();
+    }
+    Declaration(Type t, std::string name, Expression *v)
+    {
+        this->type = t;
+        this->name = name;
+        this->value = v;
+    }
+    ~Declaration()
+    {
+        delete value;
+    }
+    Type type;
+    std::string name;
+    Expression *value;
+};
+
+class Affectation : public Instruction
+{
+public:
+    std::string to_string() const override
+    {
+        return name + " = " + e->to_string();
+    }
+    Affectation(std::string name, Expression *e)
+    {
+        this->name = name;
+        this->e = e;
+    }
+    std::string name;
+    Expression *e;
+};
+
+class Block : public Instruction
+{
+
+public:
+    static Instruction *getEmpty()
+    {
+        List<Instruction *> list;
+        return new Block(list);
+    }
+
+    std::string to_string() const override
+    {
+        std::string str = "{\n";
+        for (size_t i = 0; i < instrs.length; i++)
+        {
+            str += "  ";
+            str += instrs[i]->to_string() + "\n";
+        }
+        return str + "}";
+    }
+
+    Block(List<Instruction *> instr)
+    {
+        this->instrs = instr;
+    }
+    List<Instruction *> instrs;
+};
 
 class Program
 {
 
 public:
+    std::string to_string() const
+    {
+        std::string str = "main() ";
+        str += instrs->to_string();
+        return str + "\n";
+    }
 
-    Program(List<Instruction*> instrs) {
+    Program(Instruction *instrs)
+    {
         this->instrs = instrs;
     }
-    List<Instruction*> instrs;
+    Instruction *instrs;
 
-    ~Program() {
-        for (size_t i = 0; i < instrs.length; i++)
-        {
-            delete instrs[i];
-        }
+    ~Program()
+    {
+        delete instrs;
     }
 };
 
