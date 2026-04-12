@@ -230,7 +230,7 @@ Expression *Parser::parseAtoms()
         Expression *e = parseExpression();
         if (actual != Token::RParen)
         {
-            printf("Parenthese not closed");
+            printf("Parenthese not closedat %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
         }
         expr = e;
         break;

@@ -2,6 +2,7 @@
 #include <parser.h>
 #include "asd/program.h"
 #include "lib/list.h"
+#include "lib/utils.h"
 
 using namespace std;
 
@@ -45,9 +46,19 @@ int main(void)
     if(expr != nullptr) {
         cout << (*expr) << endl;
     }
-    //cout << "actual: " << Type_Token_toString(parser->actual) << " next: " << Type_Token_toString(parser->next) << endl;
-    delete parser;
+    List<Instruction*> list;
+    List<Instruction*> list2;
+    Instruction *ifi = (Instruction *) new If(expr, list, Optional<List<Instruction*>>::of(&list2)); 
     
+    List<Instruction*> main;
+    main.append(ifi);
+
+    Program *program = new Program(main);
+    cout << (*ifi) << endl;
+
+    delete parser;
+    delete program;
+
     printf("Hello world!\n");
     return 0;
 }

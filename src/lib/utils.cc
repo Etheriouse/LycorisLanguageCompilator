@@ -56,8 +56,3 @@ std::vector<std::string> split(const std::string &str, char delimiter)
     tokens.push_back(str.substr(start));
     return tokens;
 }
-
-std::ostream &operator<<(std::ostream &os, const Expression &expr)
-{
-    return os << expr.to_string();
-}

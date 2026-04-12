@@ -2,8 +2,8 @@
 #define program_h
 
 #include <string>
-#include <map>
 #include "../lib/list.h"
+#include "../lib/utils.h"
 
 class Expression
 {
@@ -12,39 +12,12 @@ public:
     virtual ~Expression() = default;
 };
 
-enum class Operator
-{
-    // Arithmetic
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Mod,
-    Minus,
-
-    // Logic
-    And,
-    Or,
-    Xor,
-    Not,
-
-    // Comparison
-    Eq,
-    Neq,
-    Le,
-    Lt,
-    Ge,
-    Gt
-};
-
-#include "../lib/utils.h"
-
 class String : public Expression
 {
 public:
     std::string to_string() const override
     {
-        return "\""+value+"\"";
+        return "\"" + value + "\"";
     }
     String(std::string s)
     {
@@ -144,28 +117,117 @@ public:
     Operator op;
 };
 
-// class Instruction
-// {
-// public:
-//     virtual std::string to_string() = 0;
-// };
+class Instruction
+{
+public:
+    virtual std::string to_string() const = 0;
+    virtual ~Instruction() = default;
+};
 
-// class IfInst : Instruction
-// {
+class If : public Instruction
+{
+public:
+    std::string to_string() const override
+    {
+        std::string str = "if" + expr->to_string() + "{\n";
 
-// public:
-//     IfInst();
-//     std::string to_string();
+        for (size_t i = 0; i < Tinstr.length; i++)
+        {
+            str += Tinstr[i]->to_string();
+        }
+        if (!Einstr.isEmpty())
+        {
+            str += "} else {\n";
+            List<Instruction *> e = (*Einstr.get());
+            for (size_t i = 0; i < Tinstr.length; i++)
+            {
+                str += e[i]->to_string();
+            }
+        }
+        return str + "}\n";
+    }
 
-//     List<Instruction> instr;
-//     Expression expr;
-// };
+    If(Expression *expr, List<Instruction *> tinstr, Optional<List<Instruction *>> einstr)
+    {
+        this->expr = expr;
+        this->Tinstr = tinstr;
+        this->Einstr = einstr;
+    }
 
-// class Program
-// {
+    ~If()
+    {
+        delete expr;
+        for (size_t i = 0; i < Tinstr.length; i++)
+        {
+            delete Tinstr[i];
+        }
+        if (!Einstr.isEmpty())
+        {
+            List<Instruction *> e = (*Einstr.get());
+            for (size_t i = 0; i < Tinstr.length; i++)
+            {
+                delete e[i];
+            }
+        }
+    }
 
-// public:
-//     List<Instruction> instrs;
-// };
+    List<Instruction *> Tinstr;           // then
+    Optional<List<Instruction *>> Einstr; // else
+    Expression *expr;
+};
+
+class While : public Instruction
+{
+public:
+    std::string to_string() const override
+    {
+        std::string str = "while" + expr->to_string() + "{\n";
+
+        for (size_t i = 0; i < Tinstr.length; i++)
+        {
+            str += Tinstr[i]->to_string();
+        }
+        return str + "}\n";
+    }
+
+    While(Expression *expr, List<Instruction *> tinstr)
+    {
+        this->expr = expr;
+        this->Tinstr = tinstr;
+    }
+
+    ~While()
+    {
+        delete expr;
+        for (size_t i = 0; i < Tinstr.length; i++)
+        {
+            delete Tinstr[i];
+        }
+    }
+
+    List<Instruction *> Tinstr;           // then
+    Expression *expr;
+};
+
+
+class Program
+{
+
+public:
+
+    Program(List<Instruction*> instrs) {
+        this->instrs = instrs;
+    }
+    List<Instruction*> instrs;
+
+    ~Program() {
+        for (size_t i = 0; i < instrs.length; i++)
+        {
+            delete instrs[i];
+        }
+    }
+};
+
+#include "../lib/operator_out.h"
 
 #endif
