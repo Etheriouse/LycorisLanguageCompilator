@@ -16,7 +16,11 @@ void SymboleTable::add(Variable v, string name) {
 void SymboleTable::set(Value *v, string name) {
     for(auto it = scops.rbegin(); it != scops.rend(); ++it) {
         if((*it).find(name) != (*it).end()) {
-            (*it)[name] = {v, (*it)[name].type};
+            if(!(*it)[name].immutable) {
+                (*it)[name] = {v, (*it)[name].type, (*it)[name].immutable};
+            } else {
+                printf("SymboleTable::set, Immutable Variable cannot be modified: %s\n", name.c_str());        
+            }
             return;
         }
     }

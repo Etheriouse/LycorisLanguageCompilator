@@ -10,6 +10,10 @@ std::ostream &operator<<(std::ostream &os, const Instruction &instr)
     return os << instr.to_string();
 }
 
+std::ostream &operator<<(std::ostream &os, const Function &f)
+{
+    return os << f.to_string();
+}
 
 std::ostream &operator<<(std::ostream &os, const Program &pr)
 {

@@ -2,16 +2,18 @@
 #include <fstream>
 #include <iostream>
 #include <cctype>
+#include <sstream>
 
 Lexer::Lexer(const char *filename, char separtor)
 {
     std::ifstream file(filename);
-    std::string str;
-    while (getline(file, str))
-    {
-        this->file += str + "\n";
-    }
-    this->separator = separtor;
+    if (!file)
+        throw std::runtime_error("Cannot open file");
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    this->file = buffer.str();
+    this->separator = separator;
 }
 
 char Lexer::get_char()
@@ -26,6 +28,14 @@ char Lexer::get_char()
 }
 
 std::string Lexer::get_word(Token *t)
+{
+    index_file_prev = index_file;
+    index_line_prev = index_line;
+    std::string value = get_word_p(t);
+    return value;
+}
+
+std::string Lexer::get_word_p(Token *t)
 {
     std::string str;
     if (index >= file.size())
@@ -175,6 +185,12 @@ std::string get_special_char(char c, Token *t)
     case '&':
         (*t) = Token::Esperluet;
         return "&";
+    case '#':
+        (*t) = Token::Hashtag;
+        return "#";
+    case ',':
+        (*t) = Token::Comma;
+        return ",";
     default:
         (*t) = Token::Error;
         return "Error";
@@ -266,41 +282,45 @@ std::string special_char_token_print(Token t)
     switch (t)
     {
     case Token::LSBracket:
-        return "[";
+        return "Left square bracket";
     case Token::RSBracket:
-        return "]";
+        return "Right square bracket";
     case Token::LBracket:
-        return "{";
+        return "Left bracket";
     case Token::RBracket:
-        return "}";
+        return "Right bracket";
     case Token::LParen:
-        return "(";
+        return "Left parenthese";
     case Token::RParen:
-        return ")";
+        return "Right parenthese";
     case Token::SemiColon:
-        return ";";
+        return "Semicolon";
     case Token::Add:
-        return "+";
+        return "Plus";
     case Token::Sub:
-        return "-";
+        return "Minus";
     case Token::Star:
-        return "*";
+        return "Star";
     case Token::Div:
-        return "/";
+        return "Slash";
     case Token::Eq:
-        return "=";
+        return "Equal";
     case Token::Not:
-        return "!";
+        return "Exclamation";
     case Token::LCrochet:
-        return "<";
+        return "Left crochet";
     case Token::RCrochet:
-        return ">";
+        return "Right crochet";
     case Token::Mod:
-        return "%";
+        return "Pourcent";
     case Token::Bar:
-        return "|";
+        return "Bar";
     case Token::Esperluet:
-        return "&";
+        return "Esperluet";
+    case Token::Hashtag:
+        return "Hashtag";
+    case Token::Comma:
+        return "Comma";
     default:
         return "Unknown";
     }

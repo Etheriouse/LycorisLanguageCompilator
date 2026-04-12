@@ -5,9 +5,12 @@
 #include "../lib/list.h"
 #include "../lib/utils.h"
 
+#define identation "    "
+
 class Expression
 {
 public:
+    virtual void pretty_print() const = 0;
     virtual std::string to_string() const = 0;
     virtual ~Expression() = default;
 };
@@ -15,6 +18,7 @@ public:
 class Value : public Expression
 {
 public:
+    virtual void pretty_print() const = 0;
     virtual std::string to_string() const override = 0;
     virtual int getInt() { throw std::runtime_error("Not an int"); }
     virtual bool getBool() { throw std::runtime_error("Not an bool"); }
@@ -30,9 +34,16 @@ public:
         return value;
     }
 
+    void pretty_print() const override
+    {
+        std::string str;
+        str += "\"" + value + "\"";
+        std::cout << str;
+    }
+
     std::string to_string() const override
     {
-        return "\"" + value + "\"";
+        return "String(" + value + ")";
     }
     String(std::string s)
     {
@@ -50,7 +61,13 @@ public:
     }
     std::string to_string() const override
     {
-        return std::to_string(value);
+        return "Integer(" + std::to_string(value) + ")";
+    }
+    void pretty_print() const override
+    {
+        std::string str;
+        str += std::to_string(value);
+        std::cout << str;
     }
     Integer(int n)
     {
@@ -68,7 +85,13 @@ public:
     }
     std::string to_string() const override
     {
-        return std::to_string(value);
+        return "Float(" + std::to_string(value) + ")";
+    }
+    void pretty_print() const override
+    {
+        std::string str;
+        str += std::to_string(value);
+        std::cout << str;
     }
     Float(float x)
     {
@@ -86,14 +109,14 @@ public:
     }
     std::string to_string() const override
     {
-        if (value)
-        {
-            return "true";
-        }
-        else
-        {
-            return "false";
-        }
+        std::string str = value ? "true" : "false";
+        return ("Boolean(" + str + ")");
+    }
+    void pretty_print() const override
+    {
+        std::string str;
+        str += (value ? "true" : "false");
+        std::cout << str;
     }
     Boolean(bool b)
     {
@@ -107,7 +130,13 @@ class Variable : public Expression
 public:
     std::string to_string() const override
     {
-        return "var: " + name;
+        return "Variable(" + name + ")";
+    }
+    void pretty_print() const override
+    {
+        std::string str;
+        str += name;
+        std::cout << str;
     }
     Variable(std::string str)
     {
@@ -121,7 +150,15 @@ class BinOp : public Expression
 public:
     std::string to_string() const override
     {
-        return ("(" + a->to_string() + " " + to_string_op(op) + " " + b->to_string() + ")");
+        return ("BinOp(" + a->to_string() + " " + to_string_op(op) + " " + b->to_string() + ")");
+    }
+    void pretty_print() const override
+    {
+        std::cout << "(";
+        a->pretty_print();
+        std::cout << " " << to_string_op(op) + " ";
+        b->pretty_print();
+        std::cout << ")";
     }
     BinOp(Expression *a, Operator op, Expression *b)
     {
@@ -143,7 +180,13 @@ class UnOp : public Expression
 public:
     std::string to_string() const override
     {
-        return ("(" + to_string_op(op) + " " + a->to_string() + ")");
+        return ("UnOp(" + to_string_op(op) + " " + a->to_string() + ")");
+    }
+    void pretty_print() const override
+    {
+        std::cout << "(" + to_string_op(op) + " ";
+        a->pretty_print();
+        std::cout << ")";
     }
     UnOp(Operator op, Expression *a)
     {
@@ -158,9 +201,57 @@ public:
     Operator op;
 };
 
+class CallFunctionExpr : public Expression
+{
+public:
+    std::string to_string() const override
+    {
+        std::string str = "CallFunctionExpr(" + name + ", List(";
+
+        for (size_t i = 0; i < param.length; i++)
+        {
+            if (i > 0)
+            {
+                str += ", ";
+            }
+            str += param[i]->to_string();
+        }
+        return str + "))";
+    }
+    void pretty_print() const override
+    {
+        std::cout << name + "(";
+
+        for (size_t i = 0; i < param.length; i++)
+        {
+            if (i > 0)
+            {
+                std::cout << ", ";
+            }
+            param[i]->pretty_print();
+        }
+        std::cout << ")";
+    }
+    CallFunctionExpr(std::string name, List<Expression *> param)
+    {
+        this->name = name;
+        this->param = param;
+    };
+    ~CallFunctionExpr()
+    {
+        for (size_t i = 0; i < param.length; i++)
+        {
+            delete param[i];
+        }
+    }
+    std::string name;
+    List<Expression *> param;
+};
+
 class Instruction
 {
 public:
+    virtual void pretty_print(int ident) const = 0;
     virtual std::string to_string() const = 0;
     virtual ~Instruction() = default;
 };
@@ -170,14 +261,31 @@ class If : public Instruction
 public:
     std::string to_string() const override
     {
-        std::string str = "if" + expr->to_string() + "\n";
+        std::string str = "If(" + expr->to_string() + ", ";
         str += Tinstr->to_string();
         if (!Einstr.isEmpty())
         {
-            str += "else\n";
+            str += ", ";
             str += (*Einstr.get())->to_string();
         }
-        return str + "\n";
+        return str + ")";
+    }
+
+    void pretty_print(int ident) const override
+    {
+        for (int i = 0; i < ident; i++)
+        {
+            std::cout << identation;
+        }
+        std::cout << "if ";
+        expr->pretty_print();
+        std::cout << std::endl;
+        Tinstr->pretty_print(ident);
+        if (!Einstr.isEmpty())
+        {
+            std::cout << "else" << std::endl;
+            (*Einstr.get())->pretty_print(ident);
+        }
     }
 
     If(Expression *expr, Instruction *tinstr, Optional<Instruction *> einstr)
@@ -207,9 +315,21 @@ class While : public Instruction
 public:
     std::string to_string() const override
     {
-        std::string str = "while" + expr->to_string() + "\n";
+        std::string str = "While(" + expr->to_string() + ", ";
         str += Tinstr->to_string();
-        return str + "}\n";
+        return str + ")";
+    }
+
+    void pretty_print(int ident) const override
+    {
+        for (int i = 0; i < ident; i++)
+        {
+            std::cout << identation;
+        }
+        std::cout << "if ";
+        expr->pretty_print();
+        std::cout << std::endl;
+        Tinstr->pretty_print(ident);
     }
 
     While(Expression *expr, Instruction *tinstr)
@@ -233,7 +353,17 @@ class Declaration : public Instruction
 public:
     std::string to_string() const override
     {
-        return TypeToString(type) + " " + name + " = " + value->to_string();
+        return "Declaration(" + TypeToString(type) + ", " + name + ", " + value->to_string() + ")";
+    }
+    void pretty_print(int ident) const override
+    {
+        for (int i = 0; i < ident; i++)
+        {
+            std::cout << identation;
+        }
+        std::cout << TypeToString(type) << " " << name << " = ";
+        value->pretty_print();
+        std::cout << ";" << std::endl;
     }
     Declaration(Type t, std::string name, Expression *v)
     {
@@ -255,15 +385,84 @@ class Affectation : public Instruction
 public:
     std::string to_string() const override
     {
-        return name + " = " + e->to_string();
+        return "Affectation(" + name + ", " + e->to_string() + ")";
+    }
+    void pretty_print(int ident) const override
+    {
+        for (int i = 0; i < ident; i++)
+        {
+            std::cout << identation;
+        }
+        std::cout << name << " = ";
+        e->pretty_print();
+        std::cout << ";" << std::endl;
     }
     Affectation(std::string name, Expression *e)
     {
         this->name = name;
         this->e = e;
     }
+    ~Affectation()
+    {
+        delete e;
+    }
     std::string name;
     Expression *e;
+};
+
+class Return : public Instruction
+{
+public:
+    std::string to_string() const override
+    {
+        return "return(" + e->to_string() + ")";
+    }
+    void pretty_print(int ident) const override
+    {
+        for (int i = 0; i < ident; i++)
+        {
+            std::cout << identation;
+        }
+        std::cout << "return ";
+        e->pretty_print();
+        std::cout << ";" << std::endl;
+    }
+    Return(Expression *e)
+    {
+        this->e = e;
+    }
+    ~Return()
+    {
+        delete e;
+    }
+    Expression *e;
+};
+
+class CallFunction : public Instruction
+{
+public:
+    std::string to_string() const override
+    {
+        return expr->to_string();
+    }
+    void pretty_print(int ident) const override
+    {
+        for (int i = 0; i < ident; i++)
+        {
+            std::cout << identation;
+        }
+        expr->pretty_print();
+        std::cout << ";" << std::endl;
+    }
+    CallFunction(std::string name, List<Expression *> param)
+    {
+        this->expr = new CallFunctionExpr(name, param);
+    };
+    ~CallFunction()
+    {
+        delete expr;
+    }
+    CallFunctionExpr *expr;
 };
 
 class Block : public Instruction
@@ -278,43 +477,142 @@ public:
 
     std::string to_string() const override
     {
-        std::string str = "{\n";
+        std::string str = "Block(";
         for (size_t i = 0; i < instrs.length; i++)
         {
-            str += "  ";
-            str += instrs[i]->to_string() + "\n";
+            if (i > 0)
+                str += ", ";
+            str += instrs[i]->to_string();
         }
-        return str + "}";
+        return str + ")";
     }
-
+    void pretty_print(int ident) const override
+    {
+        for (int i = 0; i < ident; i++)
+        {
+            std::cout << identation;
+        }
+        std::cout << "{" << std::endl;
+        for (size_t i = 0; i < instrs.length; i++)
+        {
+            instrs[i]->pretty_print(ident + 1);
+        }
+        for (int i = 0; i < ident; i++)
+        {
+            std::cout << identation;
+        }
+        std::cout << "}" << std::endl;
+    }
     Block(List<Instruction *> instr)
     {
         this->instrs = instr;
     }
+    ~Block() {
+        for (size_t i = 0; i < instrs.length; i++)
+        {
+            delete instrs[i];
+        }
+    }
     List<Instruction *> instrs;
+};
+
+class Function
+{
+public:
+    virtual std::string to_string() const = 0;
+    virtual void pretty_print(int ident) const = 0;
+    virtual ~Function() = default;
+};
+
+class Definition : public Function
+{
+public:
+    typedef struct
+    {
+        Type type;
+        std::string name;
+    } Parameter;
+
+    std::string to_string() const override
+    {
+        std::string str = "Definition(" + TypeToString(ret) + ", " + name + ", List(";
+        for (size_t i = 0; i < param.length; i++)
+        {
+            if (i > 0)
+            {
+                str += ", ";
+            }
+            str += ("Parameter(" + TypeToString(param[i].type) + ", " + param[i].name + ")");
+        }
+        str += "), ";
+        str += instr->to_string();
+        return str + ")";
+    }
+    void pretty_print(int ident) const override
+    {
+        std::cout << TypeToString(ret) << " " << name << "(";
+        for (size_t i = 0; i < param.length; i++)
+        {
+            if (i > 0)
+            {
+                std::cout << ", ";
+            }
+            std::cout << (TypeToString(param[i].type) + " " + param[i].name);
+        }
+        std::cout << ")" << std::endl;
+        instr->pretty_print(ident);
+    }
+    Definition(Type ret, std::string name, List<Parameter> param, Instruction *instr)
+    {
+        this->ret = ret;
+        this->name = name;
+        this->param = param;
+        this->instr = instr;
+    }
+    ~Definition()
+    {
+        delete instr;
+    }
+    Type ret;
+    std::string name;
+    List<Parameter> param;
+    Instruction *instr;
 };
 
 class Program
 {
 
 public:
+    void pretty_print(int ident) const
+    {
+        for (size_t i = 0; i < fs.length; i++)
+        {
+            fs[i]->pretty_print(ident);
+        }
+    }
+
     std::string to_string() const
     {
-        std::string str = "main() ";
-        str += instrs->to_string();
+        std::string str = "";
+        for (size_t i = 0; i < fs.length; i++)
+        {
+            str += fs[i]->to_string();
+        }
         return str + "\n";
     }
 
-    Program(Instruction *instrs)
+    Program(List<Function *> fs)
     {
-        this->instrs = instrs;
+        this->fs = fs;
     }
-    Instruction *instrs;
-
     ~Program()
     {
-        delete instrs;
+        for (size_t i = 0; i < fs.length; i++)
+        {
+            delete fs[i];
+        }
     }
+    List<Function *> fs;
 };
 
 #include "../lib/operator_out.h"

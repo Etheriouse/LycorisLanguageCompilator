@@ -13,6 +13,7 @@ public:
     {
         Value *value;
         Type type;
+        bool immutable;
     } Variable;
 
     SymboleTable();

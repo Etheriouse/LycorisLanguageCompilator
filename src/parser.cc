@@ -1,5 +1,6 @@
-#include <parser.h>
+//#define verbose
 
+#include <parser.h>
 #include <fstream>
 #include <iostream>
 #include <cctype>
@@ -7,18 +8,21 @@
 #include <vector>
 
 #include "lib/utils.h"
+#include "lib/console.h"
 
 using namespace std;
 
 #define notfound (long unsigned int)-1
 
-std::vector<std::string> split(const std::string &str, char delimiter);
+bool isKeywordType(std::string str);
+Type getTypeFrom(std::string str);
 
 Parser::Parser(const char *program_filename, const char *config_filename)
 {
     std::ifstream file(config_filename);
     std::string str;
     std::vector<std::string> keyword;
+    std::vector<std::string> keyword_bool;
     char separator, str_s, float_s;
     while (getline(file, str))
     {
@@ -40,7 +44,12 @@ Parser::Parser(const char *program_filename, const char *config_filename)
         else if (str.rfind("keyword", 0) != notfound)
         {
             size_t index = str.find('\'');
-            keyword = split(str.substr(index + 1, str.size() - 1), ' ');
+            keyword = split(str.substr(index + 1, str.size() - 10), ' ');
+        }
+        else if (str.rfind("bool_keyword", 0) != notfound)
+        {
+            size_t index = str.find('\'');
+            keyword_bool = split(str.substr(index + 1, str.size() - 15), ' ');
         }
     }
 
@@ -48,6 +57,8 @@ Parser::Parser(const char *program_filename, const char *config_filename)
     this->lexer->set_float_separator(float_s);
     this->lexer->set_str_separator(str_s);
     this->lexer->set_keyword_list(keyword);
+    this->lexer->set_bool_keyword_list(keyword);
+
     next_str = lexer->get_word(&next);
     nextToken();
 }
@@ -57,9 +68,67 @@ Parser::~Parser()
     delete lexer;
 }
 
-Instruction *Parser::parse()
+Program *Parser::parse()
 {
-    return parseInstruction();
+    List<Function *> list;
+    while ((actual != Token::Null && actual != Token::Error) && !quit)
+    {
+        list.append(parseFunction());
+    }
+    return new Program(list);
+}
+
+Function *Parser::parseFunction()
+{
+    if (isKeywordType(str) && next == Token::Ident)
+    {
+        Type t = getTypeFrom(str);
+        nextToken();
+        std::string name = str;
+        nextToken();
+        if (actual == Token::LParen)
+        {
+            nextToken();
+            List<Definition::Parameter> param;
+            while (actual != Token::RParen && !quit)
+            {
+                Type tp = getTypeFrom(str);
+                nextToken();
+                std::string namep = str;
+                nextToken();
+                if (actual == Token::Comma)
+                {
+                    param.append((Definition::Parameter){tp, namep});
+                }
+                else if (actual == Token::RParen)
+                {
+                    param.append((Definition::Parameter){tp, namep});
+                    break;
+                }
+                else
+                {
+                    errorf("Parser::parseFunction, Wait a comma at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+                    quit = true;
+                }
+                nextToken();
+            }
+            nextToken();
+            Instruction *i = parseInstruction();
+            return new Definition(t, name, param, i);
+        }
+        else
+        {
+            errorf("Parser::parseFunction, Wait a left parenthese at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            quit = true;
+            return new Definition(Type::Null, "none", List<Definition::Parameter>::getEmpty(), Block::getEmpty());
+        }
+    }
+    else
+    {
+        errorf("Parser::parseFunction, Wait a defintion function at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+        quit = true;
+        return new Definition(Type::Null, "none", List<Definition::Parameter>::getEmpty(), Block::getEmpty());
+    }
 }
 
 Instruction *Parser::parseInstruction()
@@ -79,7 +148,7 @@ Instruction *Parser::parseInstruction()
     {
         if (next != Token::Eq)
         {
-            printf("Parser::parseInstruction, Equal sign not present at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            errorf("Parser::parseInstruction, Equal sign not present at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
             quit = true;
             break;
         }
@@ -90,7 +159,7 @@ Instruction *Parser::parseInstruction()
         i = new Affectation(name, expr);
         if (actual != Token::SemiColon)
         {
-            printf("Parser::parseInstruction, affect instruction SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            errorf("Parser::parseInstruction, affect instruction SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
             quit = true;
             break;
         }
@@ -102,7 +171,7 @@ Instruction *Parser::parseInstruction()
     {
         nextToken();
         List<Instruction *> list;
-        while (actual != Token::RBracket)
+        while (actual != Token::RBracket && !quit)
         {
             list.append(parseInstruction());
         }
@@ -111,7 +180,7 @@ Instruction *Parser::parseInstruction()
         break;
     }
     default:
-        printf("Parser::parseInstruction, Invalide instruction at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+        errorf("Parser::parseInstruction, Invalide instruction at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
         quit = true;
         i = Block::getEmpty();
         break;
@@ -129,12 +198,31 @@ Instruction *Parser::parseKeyword()
     {
         return parseWhile();
     }
-    else if (str == "int" || str == "bool" || str == "float" || str == "string")
+    else if (isKeywordType(str) || str == "const")
     {
         return parseDeclaration();
     }
-    printf("Parser::parseKeyword, Undefined keyword %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+    else if (str == "return")
+    {
+        return parseReturn();
+    }
+    errorf("Parser::parseKeyword, Undefined keyword %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+    quit = true;
     return Block::getEmpty();
+}
+
+Instruction *Parser::parseReturn()
+{
+    nextToken();
+    Expression *e = parseExpression();
+    Return *i = new Return(e);
+    if (actual != Token::SemiColon)
+    {
+        errorf("Parser::parseReturn, return instruction SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+        quit = true;
+    }
+    nextToken();
+    return i;
 }
 
 Instruction *Parser::parseIf()
@@ -161,23 +249,12 @@ Instruction *Parser::parseWhile()
 
 Instruction *Parser::parseDeclaration()
 {
-    Type t = Type::Null;
-    if (str == "int")
+    bool immutable = str == "const";
+    if (immutable)
     {
-        t = Type::Integer;
+        nextToken();
     }
-    else if (str == "bool")
-    {
-        t = Type::Bool;
-    }
-    else if (str == "float")
-    {
-        t = Type::Float;
-    }
-    else if (str == "string")
-    {
-        t = Type::String;
-    }
+    Type t = getTypeFrom(str);
     nextToken();
     std::string name = str;
     nextToken();
@@ -186,7 +263,7 @@ Instruction *Parser::parseDeclaration()
     Instruction *i = new Declaration(t, name, e);
     if (actual != Token::SemiColon)
     {
-        printf("Parser::parseDeclaration, declartion SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+        errorf("Parser::parseDeclaration, declartion SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
         quit = true;
     }
     nextToken();
@@ -349,11 +426,43 @@ Expression *Parser::parseAtoms()
         break;
 
     case Token::Ident:
+    {
         if (next != Token::LParen)
         {
             expr = new Variable(str);
         }
-        break;
+        else if (next == Token::LParen)
+        {
+            std::string name = str;
+            nextToken(); // actual = (
+            nextToken();
+            List<Expression *> list;
+            while (actual != Token::RParen)
+            {
+                list.append(parseExpression());
+                if (actual == Token::Comma)
+                {
+                    nextToken();
+                }
+                else if (actual == Token::RParen)
+                {
+                    break;
+                }
+                else
+                {
+                    quit = true;
+                    errorf("Parser::parseAtoms: Wait a comma at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+                }
+            }
+            expr = new CallFunctionExpr(name, list);
+        }
+        else
+        {
+            quit = true;
+            errorf("Parser::parseAtoms: Wait a left parenthese at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+        }
+    }
+    break;
 
     case Token::LParen:
     {
@@ -361,17 +470,48 @@ Expression *Parser::parseAtoms()
         Expression *e = parseExpression();
         if (actual != Token::RParen)
         {
-            printf("Parenthese not closedat %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            errorf("Parser::parseAtoms: Parenthese not closedat %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
         }
         expr = e;
         break;
     }
 
     default:
-        printf("Previous token wait an atoms, but get %s at %lu:%lu\n", Type_Token_toString(actual).c_str(), lexer->get_index_file(), lexer->get_index_line());
+        errorf("Parser::parseAtoms: Previous token wait an atoms, but get %s at %lu:%lu\n", Type_Token_toString(actual).c_str(), lexer->get_index_file(), lexer->get_index_line());
         expr = new String("ERROR :c");
         break;
     }
     nextToken();
     return expr;
+}
+
+bool isKeywordType(std::string str)
+{
+
+    return str == "float" ||
+           str == "int" ||
+           str == "string" ||
+           str == "bool";
+}
+
+Type getTypeFrom(std::string str)
+{
+    Type t = Type::Null;
+    if (str == "int")
+    {
+        t = Type::Integer;
+    }
+    else if (str == "bool")
+    {
+        t = Type::Bool;
+    }
+    else if (str == "float")
+    {
+        t = Type::Float;
+    }
+    else if (str == "string")
+    {
+        t = Type::String;
+    }
+    return t;
 }

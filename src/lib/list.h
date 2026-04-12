@@ -57,6 +57,10 @@ public:
         return element;
     }
 
+    static List getEmpty() {
+        return List();
+    }
+
     T &operator[](u_int64_t i)
     {
         return arr[i];

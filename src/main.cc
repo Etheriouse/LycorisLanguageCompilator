@@ -1,4 +1,3 @@
-#include <iostream>
 #include <parser.h>
 #include "asd/program.h"
 #include "lib/list.h"
@@ -9,27 +8,15 @@ using namespace std;
 
 int main(void)
 {
-    int a = 1;
-    int b = 1;
-    int res = a+b;
-    int n = 10;
-    while (n>0) {
-        res = b + a;
-        a = b;
-        b = res;   
-        n = n - 1;
-    }
-    printf("\n");
-
     SymboleTable *table = new SymboleTable();
-    Parser *parser = new Parser("tests/instruction/fibo.ll", "config.llc");
-    Instruction *prog = parser->parse();
-    
-    Program *program = new Program(prog);
-    cout << (*program) << endl;
-    delete parser;
-    delete program;
+    Parser *parser = new Parser("tests/functions/func.ll", "config.llc");
+    Program *program = parser->parse();
 
-    printf("Hello world!\n");
+    cout << (*program) << endl;
+    program->pretty_print(0);
+    
+    delete program;
+    delete parser;
+    delete table;
     return 0;
 }

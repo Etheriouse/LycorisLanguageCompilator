@@ -3,6 +3,7 @@
 
 #include <lexer.h>
 #include "asd/program.h"
+#include "lib/console.h"
 
 class Parser
 {
@@ -10,7 +11,7 @@ class Parser
 public:
     Parser(const char *program_filename, const char *config_filename);
     ~Parser();
-    Instruction *parse();
+    Program *parse();
 
 private:
     Token actual = Token::Null;
@@ -20,11 +21,14 @@ private:
     std::string next_str;
     bool quit = false;
 
+    Function *parseFunction();
+
     Instruction *parseInstruction();
     Instruction *parseKeyword();
     Instruction *parseIf();
     Instruction *parseWhile();
     Instruction *parseDeclaration();
+    Instruction *parseReturn();
 
     Expression *parseExpression();
     Expression *parseXor();
@@ -41,7 +45,9 @@ private:
         actual = next;
         str = next_str;
         next_str = lexer->get_word(&next);
-        printf("LOG: act %s\n", Type_Token_toString(actual).c_str());
+#ifdef verbose
+        logf("Token %s", Type_Token_toString(actual).c_str());
+#endif
     }
 };
 

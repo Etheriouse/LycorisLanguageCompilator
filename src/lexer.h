@@ -30,7 +30,9 @@ enum class Token
     RCrochet, // >
     Mod, // %
     Bar, // |
-    Esperluet,
+    Esperluet, // &
+    Hashtag, // #
+    Comma, // ,
     Error,
     Null,
 };
@@ -55,16 +57,16 @@ public:
     void set_str_separator(char separator);
 
     u_int64_t get_index_line() {
-        return index_line;
+        return index_line_prev;
     }
 
     u_int64_t get_index_file() {
-        return index_file;
+        return index_file_prev;
     }
 
 private:
     std::string get_not_alpha_char(Token *t);
-
+    std::string get_word_p(Token *t);
     /**
      * Excalty like index++
      * return value befor incr
@@ -85,6 +87,10 @@ private:
     std::vector<std::string> keywords;
     std::vector<std::string> bool_keywords;
     u_int64_t index = 0;
+    
+    u_int64_t index_line_prev = 1;
+    u_int64_t index_file_prev = 1;
+    
     u_int64_t index_line = 1;
     u_int64_t index_file = 1;
     char separator = ' ';
