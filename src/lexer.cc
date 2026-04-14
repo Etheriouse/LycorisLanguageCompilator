@@ -4,6 +4,10 @@
 #include <cctype>
 #include <sstream>
 
+bool isIdentChar(char i) {
+    return isalpha(i) || i == '_';
+}
+
 Lexer::Lexer(const char *filename, char separtor)
 {
     std::ifstream file(filename);
@@ -47,13 +51,13 @@ std::string Lexer::get_word_p(Token *t)
     {
         incrIndex();
     }
-    if (!isalpha(file[index]))
+    if (!isIdentChar(file[index]))
         return get_not_alpha_char(t);
 
     (*t) = Token::Ident;
     while (file[index] != separator)
     {
-        if (!isalpha(file[index]))
+        if (!isIdentChar(file[index]))
         {
             if (is_a_bool_keyword(str))
                 (*t) = Token::Boolean;

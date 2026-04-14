@@ -44,7 +44,7 @@ Type SymboleTable::getType(string name) {
         }
     }
     printf("SymboleTable::getType, Variable not found: %s\n", name.c_str());
-    return Type::Null;
+    return Type::Null();
 }
 
 void SymboleTable::enterScop() {

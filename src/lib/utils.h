@@ -2,6 +2,7 @@
 #define utils_h
 
 #include "../asd/program.h"
+#include <memory>
 
 enum class Operator
 {
@@ -25,16 +26,80 @@ enum class Operator
     Le,
     Lt,
     Ge,
-    Gt
+    Gt,
+
+    Dereference,
+    Reference
 };
 
-enum class Type
+class Type
 {
-    Integer,
-    String,
-    Float,
-    Bool,
-    Null
+public:
+    enum raw
+    {
+        int_,
+        str_,
+        float_,
+        bool_,
+        array_,
+        ptr,
+        null_
+    };
+
+    static Type Integer()
+    {
+        return Type(int_);
+    }
+    static Type Float()
+    {
+        return Type(float_);
+    }
+    static Type Bool()
+    {
+        return Type(bool_);
+    }
+    static Type String()
+    {
+        return Type(str_);
+    }
+    static Type Null()
+    {
+        return Type(null_);
+    }
+    static Type Array(Type t)
+    {
+        return Type(array_, t);
+    }
+    static Type Pointer(Type t) {
+        return Type(ptr, t);
+    }
+
+    Type() : raw(null_), element(nullptr) {};
+
+    Type(raw k) : raw(k), element(nullptr) {}
+
+    Type(raw k, Type elem)
+        : raw(k), element(std::make_shared<Type>(elem)) {}
+
+    bool operator==(const Type &type)
+    {
+        bool result = type.raw == this->raw;
+        if(type.element != nullptr && this->element != nullptr) {
+            result &= (*type.element.get() == *this->element.get());
+        }
+        return result;
+    }
+
+    Type e() {
+        if(this->element == nullptr) {
+            return Type::Null();
+        }
+        return *this->element.get();
+    }
+
+private:
+    raw raw;
+    std::shared_ptr<Type> element;
 };
 
 template <typename T>

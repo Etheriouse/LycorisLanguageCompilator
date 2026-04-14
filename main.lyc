@@ -2,5 +2,14 @@ int main() {
     int x = 5782;
     int y = 78.695;
     int z = .695;
+
+    x = arr[i];
+    int x;
+    int y[6];
+    int *ptr = &x;
     println("hello world");
+}
+
+int ******get_arr() {
+
 }

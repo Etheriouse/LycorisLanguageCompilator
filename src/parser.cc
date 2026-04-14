@@ -1,4 +1,4 @@
-//#define verbose
+// #define verbose
 
 #include <parser.h>
 #include <fstream>
@@ -80,12 +80,25 @@ Program *Parser::parse()
 
 Function *Parser::parseFunction()
 {
-    if (isKeywordType(str) && next == Token::Ident)
+    if (isKeywordType(str) && (next == Token::Ident || next == Token::Star || next == Token::LSBracket))
     {
         Type t = getTypeFrom(str);
         nextToken();
+        if(actual == Token::Star) {
+            do {
+                nextToken();
+                t = Type::Pointer(t);
+            } while(actual == Token::Star);
+        } else if(actual == Token::LSBracket && next == Token::RSBracket) {
+            nextToken();
+            nextToken();
+            t = Type::Array(t);
+        } else if(actual != Token::Ident) {
+            errorf("Parser::parseFunction, undefined type a comma at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            quit = true;
+        }
         std::string name = str;
-        nextToken();
+        nextToken(name);
         if (actual == Token::LParen)
         {
             nextToken();
@@ -120,14 +133,14 @@ Function *Parser::parseFunction()
         {
             errorf("Parser::parseFunction, Wait a left parenthese at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
             quit = true;
-            return new Definition(Type::Null, "none", List<Definition::Parameter>::getEmpty(), Block::getEmpty());
+            return new Definition(Type::Null(), "none", List<Definition::Parameter>::getEmpty(), Block::getEmpty());
         }
     }
     else
     {
         errorf("Parser::parseFunction, Wait a defintion function at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
         quit = true;
-        return new Definition(Type::Null, "none", List<Definition::Parameter>::getEmpty(), Block::getEmpty());
+        return new Definition(Type::Null(), "none", List<Definition::Parameter>::getEmpty(), Block::getEmpty());
     }
 }
 
@@ -146,24 +159,47 @@ Instruction *Parser::parseInstruction()
 
     case Token::Ident:
     {
-        if (next != Token::Eq)
+        if (next == Token::Eq)
+        {
+            std::string name = str;
+            nextToken();
+            nextToken();
+            Expression *expr = parseExpression();
+            cout << str << endl;
+            i = new Affectation(name, expr);
+            if (actual != Token::SemiColon)
+            {
+                errorf("Parser::parseInstruction, affect instruction SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+                quit = true;
+                break;
+            }
+            nextToken();
+        }
+        else if (next == Token::LParen)
+        {
+            Expression *e = parseExpression();
+            CallFunctionExpr *expr = dynamic_cast<CallFunctionExpr *>(e);
+            if (expr == nullptr)
+            {
+                errorf("Parser::parseInstruction, callFunction Instruction is not a callfunctionExpr %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+                quit = true;
+                break;
+            }
+            i = new CallFunction(expr->name, expr->param);
+            if (actual != Token::SemiColon)
+            {
+                errorf("Parser::parseInstruction, callFunction Instruction instruction SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+                quit = true;
+                break;
+            }
+            nextToken();
+        }
+        else
         {
             errorf("Parser::parseInstruction, Equal sign not present at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
             quit = true;
             break;
         }
-        std::string name = str;
-        nextToken();
-        nextToken();
-        Expression *expr = parseExpression();
-        i = new Affectation(name, expr);
-        if (actual != Token::SemiColon)
-        {
-            errorf("Parser::parseInstruction, affect instruction SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
-            quit = true;
-            break;
-        }
-        nextToken();
         break;
     }
 
@@ -250,24 +286,81 @@ Instruction *Parser::parseWhile()
 Instruction *Parser::parseDeclaration()
 {
     bool immutable = str == "const";
+    Optional<Integer> arr_size = Optional<Integer>::empty();
     if (immutable)
     {
         nextToken();
     }
     Type t = getTypeFrom(str);
-    nextToken();
-    std::string name = str;
-    nextToken();
-    nextToken();
-    Expression *e = parseExpression();
-    Instruction *i = new Declaration(t, name, e);
-    if (actual != Token::SemiColon)
+    if (next == Token::Star)
     {
-        errorf("Parser::parseDeclaration, declartion SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
-        quit = true;
+        do
+        {
+            nextToken();
+            t = Type::Pointer(t);
+        } while (next == Token::Star);
+    } 
+    nextToken("after star");
+    std::string name = str;
+    if (next == Token::LSBracket)
+    {
+        do
+        {
+            nextToken();
+            if (next == Token::RSBracket)
+            {
+                nextToken();
+                t = Type::Array(t);
+            }
+            else if (next == Token::Integer)
+            {
+                nextToken();
+                arr_size = Optional<Integer>::of(new Integer(stoi(str.c_str())));
+                if (next == Token::RSBracket)
+                {
+                    nextToken();
+                    t = Type::Array(t);
+                }
+                else
+                {
+                    errorf("Parser::parseDeclaration, declartion right square bracket not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+                    quit = true;
+                }
+            }
+            else
+            {
+                errorf("Parser::parseDeclaration, declartion right square bracket not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+                quit = true;
+            }
+        } while (actual == Token::LSBracket);
     }
-    nextToken();
-    return i;
+    nextToken("after bracket ");
+
+    if (actual == Token::SemiColon)
+    {
+        Instruction *i = new Declaration(t, arr_size, name, Optional<Expression>::empty());
+        nextToken();
+        return i;
+    }
+    else if (actual == Token::Eq)
+    {
+        nextToken();
+        Expression *e = parseExpression();
+        Instruction *i = new Declaration(t, arr_size, name, Optional<Expression>::of(e));
+        if (actual != Token::SemiColon)
+        {
+            errorf("Parser::parseDeclaration, declartion SemiColon not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            quit = true;
+        }
+        nextToken();
+        return i;
+    }
+    else
+    {
+        errorf("Parser::parseDeclaration, declartion undefied not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+        quit = true;
+        return Block::getEmpty();
+    }
 }
 
 Expression *Parser::parseExpression()
@@ -394,9 +487,26 @@ Expression *Parser::parseMuldivMod()
 
 Expression *Parser::parseUnary()
 {
-    if (actual == Token::Not || actual == Token::Sub)
+    if (actual == Token::Not || actual == Token::Sub || actual == Token::Esperluet || actual == Token::Star)
     {
-        Operator op = (actual == Token::Not) ? Operator::Not : Operator::Minus;
+        Operator op;
+        switch (actual)
+        {
+        case Token::Not:
+            op = Operator::Not;
+            break;
+        case Token::Sub:
+            op = Operator::Minus;
+            break;
+        case Token::Esperluet:
+            op = Operator::Reference;
+            break;
+        case Token::Star:
+            op = Operator::Dereference;
+            break;
+        default:
+            break;
+        }
         nextToken();
 
         Expression *right = parseUnary();
@@ -427,7 +537,7 @@ Expression *Parser::parseAtoms()
 
     case Token::Ident:
     {
-        if (next != Token::LParen)
+        if (next != Token::LParen && next != Token::LSBracket)
         {
             expr = new Variable(str);
         }
@@ -455,6 +565,20 @@ Expression *Parser::parseAtoms()
                 }
             }
             expr = new CallFunctionExpr(name, list);
+        }
+        else if (next == Token::LSBracket)
+        {
+            std::string name = str;
+            nextToken(); // actual = (
+            nextToken();
+            Expression *e = parseExpression();
+            if (actual != Token::RSBracket)
+            {
+                quit = true;
+                errorf("Parser::parseAtoms: Wait a right square bracket at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
+            }
+            expr = new ArrayAtoms(name, e);
+            printf("atome\n");
         }
         else
         {
@@ -496,22 +620,22 @@ bool isKeywordType(std::string str)
 
 Type getTypeFrom(std::string str)
 {
-    Type t = Type::Null;
+    Type t = Type::Null();
     if (str == "int")
     {
-        t = Type::Integer;
+        t = Type::Integer();
     }
     else if (str == "bool")
     {
-        t = Type::Bool;
+        t = Type::Bool();
     }
     else if (str == "float")
     {
-        t = Type::Float;
+        t = Type::Float();
     }
     else if (str == "string")
     {
-        t = Type::String;
+        t = Type::String();
     }
     return t;
 }

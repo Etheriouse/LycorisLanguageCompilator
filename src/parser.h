@@ -40,13 +40,13 @@ private:
     Expression *parseUnary();
     Expression *parseAtoms();
 
-    void nextToken()
+    void nextToken(std::string id = "")
     {
         actual = next;
         str = next_str;
         next_str = lexer->get_word(&next);
 #ifdef verbose
-        logf("Token %s", Type_Token_toString(actual).c_str());
+        logf("%sToken %s", id.c_str(), Type_Token_toString(actual).c_str());
 #endif
     }
 };

@@ -145,6 +145,32 @@ public:
     std::string name;
 };
 
+class ArrayAtoms : public Expression
+{
+public:
+    std::string to_string() const override
+    {
+        return ("ArrayAtoms(" + name + " " + e->to_string() + ")");
+    }
+    void pretty_print() const override
+    {
+        std::cout << name << "[";
+        e->pretty_print();
+        std::cout << "]";
+    }
+    ArrayAtoms(std::string name, Expression *e)
+    {
+        this->name = name;
+        this->e = e;
+    }
+    ~ArrayAtoms()
+    {
+        delete e;
+    }
+    Expression *e;
+    std::string name;
+};
+
 class BinOp : public Expression
 {
 public:
@@ -353,7 +379,15 @@ class Declaration : public Instruction
 public:
     std::string to_string() const override
     {
-        return "Declaration(" + TypeToString(type) + ", " + name + ", " + value->to_string() + ")";
+        std::string str = "Declaration(" + TypeToString(type) + ", " + name;
+        if (!value.isEmpty())
+        {
+            str += ", " + value.get()->to_string();
+        }
+        if(!arr_size.isEmpty()) {
+            str += ", " + arr_size.get()->to_string();
+        }
+        return str + ")";
     }
     void pretty_print(int ident) const override
     {
@@ -361,23 +395,35 @@ public:
         {
             std::cout << identation;
         }
-        std::cout << TypeToString(type) << " " << name << " = ";
-        value->pretty_print();
+        std::cout << TypeToString(type) <<" " << name;
+        if (!value.isEmpty())
+        {
+            std::cout << " = ";
+            value.get()->pretty_print();
+        }
+        if(!arr_size.isEmpty()) {
+            std::cout << " size(" << arr_size.get()->getInt() << ")";
+        }
         std::cout << ";" << std::endl;
     }
-    Declaration(Type t, std::string name, Expression *v)
+    Declaration(Type t, Optional<Integer> arr_size, std::string name, Optional<Expression> v)
     {
         this->type = t;
         this->name = name;
         this->value = v;
+        this->arr_size = arr_size;
     }
     ~Declaration()
     {
-        delete value;
+        if (!value.isEmpty())
+        {
+            delete value.get();
+        }
     }
     Type type;
     std::string name;
-    Expression *value;
+    Optional<Expression> value;
+    Optional<Integer> arr_size;
 };
 
 class Affectation : public Instruction
@@ -507,7 +553,8 @@ public:
     {
         this->instrs = instr;
     }
-    ~Block() {
+    ~Block()
+    {
         for (size_t i = 0; i < instrs.length; i++)
         {
             delete instrs[i];

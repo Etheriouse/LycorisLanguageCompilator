@@ -9,7 +9,7 @@ using namespace std;
 int main(void)
 {
     SymboleTable *table = new SymboleTable();
-    Parser *parser = new Parser("tests/functions/func.lyc", "config.lycc");
+    Parser *parser = new Parser("main.lyc", "config.lycc");
     Program *program = parser->parse();
 
     cout << (*program) << endl;

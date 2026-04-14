@@ -36,27 +36,52 @@ std::string to_string_op(Operator op)
         return ">";
     case Operator::Ge:
         return ">=";
+    case Operator::Dereference:
+        return "*";
+    case Operator::Reference:
+        return "&";
     }
     return "error operator not defined";
 }
 
-std::string TypeToString(Type t) {
-    switch (t)
+std::string TypeToString(Type t)
+{
+    if (!(t.e() == Type::Null()))
     {
-    case Type::Integer:
+        if (t == Type::Array(t.e()))
+        {
+            return TypeToString(t.e()) + "[]";
+        } else if(t == Type::Pointer(t.e())) {
+            return TypeToString(t.e()) + "*";
+        } else {
+            return "Error";
+        }
+    }
+    if (t == Type::Integer())
+    {
         return "int";
-    case Type::String:
-        return "string";
-    case Type::Float:
-        return "float";
-    case Type::Bool:
+    }
+    else if (t == Type::Bool())
+    {
         return "bool";
-    case Type::Null:
+    }
+    else if (t == Type::String())
+    {
+        return "string";
+    }
+    else if (t == Type::Float())
+    {
+        return "float";
+    }
+    else if (t == Type::Null())
+    {
         return "null";
     }
-    return "Error";
+    else
+    {
+        return "Error";
+    }
 }
-
 
 std::vector<std::string> split(const std::string &str, char delimiter)
 {
