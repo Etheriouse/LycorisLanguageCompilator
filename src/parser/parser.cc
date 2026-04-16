@@ -1,6 +1,4 @@
-// #define verbose
-
-#include <parser.h>
+#include "parser.h"
 #include <fstream>
 #include <iostream>
 #include <cctype>

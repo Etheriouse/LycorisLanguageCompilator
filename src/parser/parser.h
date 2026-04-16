@@ -1,7 +1,7 @@
 #ifndef parser_h
 #define parser_h
 
-#include <lexer.h>
+#include "lexer.h"
 #include "asd/program.h"
 #include "lib/console.h"
 

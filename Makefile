@@ -9,7 +9,7 @@ SRCS := $(shell find $(SRC_DIR) -name '*.cc')
 OBJS := $(patsubst $(SRC_DIR)/%.cc,$(BIN_DIR)/%.o,$(SRCS))
 
 CXXFLAGS := -Wall -Wextra -ggdb
-CXXFLAGS += -Dverbose
+#CXXFLAGS += -Dverbose
 
 INCLUDES := -I$(SRC_DIR)
 

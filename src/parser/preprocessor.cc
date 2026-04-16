@@ -14,24 +14,31 @@ Preprocessor::Preprocessor(const char *filename)
     std::string tmp = filename;
     std::ifstream file(filename);
     if (!file)
-        throw std::runtime_error("Cannot open file");
+        throw std::runtime_error("Cannot open file code");
     std::stringstream buffer;
     buffer << file.rdbuf();
     this->file = buffer.str();
     auto pos = tmp.find_last_of('\\');
     bool firstT = true;
-    if(pos == std::string::npos) {
+    bool none = false;
+    if (pos == std::string::npos)
+    {
         pos = tmp.find_last_of('/');
-        firstT = false;
-    } else {
-        throw std::runtime_error("invalide separtor folder");
+        if (pos != std::string::npos)
+        {
+            firstT = false;
+        }
+        else
+        {
+            none = true;
+        }
+    }
+    else
+    {
     }
     std::string first = tmp.substr(0, pos);
     std::string rest = (pos == std::string::npos) ? "" : tmp.substr(pos + 1);
-    this->path = firstT ? (first+"\\") : (first+"/");
-    cout << "alo?" << endl;
-    cout << this->path << endl;
-    cout << "alo?" << endl;
+    this->path = none ? "" : (firstT ? (first + "\\") : (first + "/"));
 }
 
 string Preprocessor::process()
@@ -102,7 +109,7 @@ void Preprocessor::include(string *file)
             if (end_include == std::string::npos)
                 end_include = file->size();
             string filename = split(file->substr(i, end_include - i).erase(0, 9), '"')[1];
-            std::ifstream f(path+filename);
+            std::ifstream f(path + filename);
             if (!f)
                 throw std::runtime_error("Cannot open file");
             std::stringstream buffer;

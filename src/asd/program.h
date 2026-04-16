@@ -331,7 +331,7 @@ public:
         }
     }
 
-    Instruction *Tinstr;            // then
+    Instruction *Tinstr;          // then
     Optional<Instruction> Einstr; // else
     Expression *expr;
 };
@@ -384,7 +384,8 @@ public:
         {
             str += ", " + value.get()->to_string();
         }
-        if(!arr_size.isEmpty()) {
+        if (!arr_size.isEmpty())
+        {
             str += ", ";
             str += arr_size.get()->to_string();
         }
@@ -396,13 +397,14 @@ public:
         {
             std::cout << identation;
         }
-        std::cout << TypeToString(type) <<" " << name;
+        std::cout << TypeToString(type) << " " << name;
         if (!value.isEmpty())
         {
             std::cout << " = ";
             value.get()->pretty_print();
         }
-        if(!arr_size.isEmpty()) {
+        if (!arr_size.isEmpty())
+        {
             std::cout << " size" << (*arr_size.get());
         }
         std::cout << ";" << std::endl;
@@ -419,6 +421,10 @@ public:
         if (!value.isEmpty())
         {
             delete value.get();
+        }
+        if (!arr_size.isEmpty())
+        {
+            delete arr_size.get();
         }
     }
     Type type;
