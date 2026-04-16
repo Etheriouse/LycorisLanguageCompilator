@@ -1,0 +1,6 @@
+#include "lib.llh"
+
+int main() {
+    fact(10);
+    return 0;
+}

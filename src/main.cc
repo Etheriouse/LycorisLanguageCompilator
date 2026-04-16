@@ -6,17 +6,24 @@
 
 using namespace std;
 
-int main(void)
+int main(int argc, char const *argv[])
 {
-    SymboleTable *table = new SymboleTable();
-    Parser *parser = new Parser("main.lyc", "config.lycc");
-    Program *program = parser->parse();
+    if (argc > 2)
+    {
+        // 0 = executable name
+        std::string config = argv[1];
+        std::string filename = argv[2];
 
-    cout << (*program) << endl;
-    program->pretty_print(0);
-    
-    delete program;
-    delete parser;
-    delete table;
+        SymboleTable *table = new SymboleTable();
+        Parser *parser = new Parser(filename.c_str(), config.c_str());
+        Program *program = parser->parse();
+
+        cout << (*program) << endl;
+        program->pretty_print(0);
+
+        delete program;
+        delete parser;
+        delete table;
+    }
     return 0;
 }

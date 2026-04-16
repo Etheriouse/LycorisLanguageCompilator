@@ -292,7 +292,7 @@ public:
         if (!Einstr.isEmpty())
         {
             str += ", ";
-            str += (*Einstr.get())->to_string();
+            str += Einstr.get()->to_string();
         }
         return str + ")";
     }
@@ -310,11 +310,11 @@ public:
         if (!Einstr.isEmpty())
         {
             std::cout << "else" << std::endl;
-            (*Einstr.get())->pretty_print(ident);
+            Einstr.get()->pretty_print(ident);
         }
     }
 
-    If(Expression *expr, Instruction *tinstr, Optional<Instruction *> einstr)
+    If(Expression *expr, Instruction *tinstr, Optional<Instruction> einstr)
     {
         this->expr = expr;
         this->Tinstr = tinstr;
@@ -327,12 +327,12 @@ public:
         delete Tinstr;
         if (!Einstr.isEmpty())
         {
-            delete (*Einstr.get());
+            delete Einstr.get();
         }
     }
 
     Instruction *Tinstr;            // then
-    Optional<Instruction *> Einstr; // else
+    Optional<Instruction> Einstr; // else
     Expression *expr;
 };
 

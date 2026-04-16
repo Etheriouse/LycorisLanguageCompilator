@@ -271,9 +271,9 @@ Instruction *Parser::parseIf()
     {
         nextToken();
         Instruction *else_ = parseInstruction();
-        return new If(e, then, Optional<Instruction *>::of(&else_));
+        return new If(e, then, Optional<Instruction>::of(else_));
     }
-    return new If(e, then, Optional<Instruction *>::empty());
+    return new If(e, then, Optional<Instruction>::empty());
 }
 
 Instruction *Parser::parseWhile()

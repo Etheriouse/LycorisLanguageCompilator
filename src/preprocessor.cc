@@ -11,13 +11,27 @@ using namespace std;
 
 Preprocessor::Preprocessor(const char *filename)
 {
+    std::string tmp = filename;
     std::ifstream file(filename);
     if (!file)
         throw std::runtime_error("Cannot open file");
-
     std::stringstream buffer;
     buffer << file.rdbuf();
     this->file = buffer.str();
+    auto pos = tmp.find_last_of('\\');
+    bool firstT = true;
+    if(pos == std::string::npos) {
+        pos = tmp.find_last_of('/');
+        firstT = false;
+    } else {
+        throw std::runtime_error("invalide separtor folder");
+    }
+    std::string first = tmp.substr(0, pos);
+    std::string rest = (pos == std::string::npos) ? "" : tmp.substr(pos + 1);
+    this->path = firstT ? (first+"\\") : (first+"/");
+    cout << "alo?" << endl;
+    cout << this->path << endl;
+    cout << "alo?" << endl;
 }
 
 string Preprocessor::process()
@@ -84,12 +98,11 @@ void Preprocessor::include(string *file)
     {
         if (file->substr(i, 9) == "#include ")
         {
-            
             size_t end_include = file->find('\n', i);
             if (end_include == std::string::npos)
                 end_include = file->size();
             string filename = split(file->substr(i, end_include - i).erase(0, 9), '"')[1];
-            std::ifstream f(filename);
+            std::ifstream f(path+filename);
             if (!f)
                 throw std::runtime_error("Cannot open file");
             std::stringstream buffer;
@@ -98,7 +111,7 @@ void Preprocessor::include(string *file)
             std::string file_content = buffer.str();
             replace_define(&file_content);
             file->insert(i, file_content);
-            i+=buffer.str().size();
+            i += buffer.str().size();
         }
     }
 }

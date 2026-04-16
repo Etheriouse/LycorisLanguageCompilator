@@ -1,0 +1,89 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Lycoris",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#directive"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#number"
+		},
+		{
+			"include": "#types"
+		},
+		{
+			"include": "#functions"
+		},
+		{
+			"include": "#variables"
+		}
+	],
+	"repository": {
+		"directive": {
+			"patterns" : [
+				{
+					"name" : "keyword.control.lycoris",
+					"match": "(\\$|#)(include|define)\\b"
+				}
+			]
+		},
+		"variables": {
+			"patterns": [
+				{
+					"name": "variable.other.assignment.lycoris",
+					"match": "[a-zA-Z_][a-zA-Z0-9_]*"
+				}
+			]
+		},
+		"functions": {
+			"patterns": [
+				{
+					"name": "entity.name.function.lycoris",
+					"match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b(?=\\s*\\()"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.lycoris",
+					"match": "\\b(if|else|while|for|const|return)\\b"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.lycoris",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.lycoris",
+					"match": "\\\\."
+				}
+			]
+		},
+		"number": {
+			"patterns": [
+				{
+					"name": "constant.numeric.lycoris",
+					"match": "\\b\\d+(\\.\\d+)?\\b"
+				}
+			]
+		},
+		"types": {
+			"patterns": [
+				{
+					"name": "storage.type.lycoris",
+					"match": "\\b(int|string|bool|float|void)\\b"
+				}
+			]
+		}
+	},
+	"scopeName": "lycorisgrammar.lyc"
+}

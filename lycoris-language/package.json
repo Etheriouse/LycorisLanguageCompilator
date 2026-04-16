@@ -1,0 +1,25 @@
+{
+  "name": "lycoris-language",
+  "displayName": "Lycoris Language",
+  "description": "Vscode extentions for proto language Lycoris",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.116.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "lycoris",
+      "aliases": ["Lycoris", "lycoris"],
+      "extensions": [".lyc"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "lycoris",
+      "scopeName": "lycorisgrammar.lyc",
+      "path": "./syntaxes/lycoris.tmLanguage.json"
+    }]
+  }
+}

@@ -13,6 +13,7 @@ private:
     void replace_define(std::string *file);
     void include(std::string *file);
     std::string file;
+    std::string path;
 
 };
 
