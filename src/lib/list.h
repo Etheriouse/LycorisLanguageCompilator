@@ -23,6 +23,12 @@ public:
         length = initsize;
     }
 
+    List(std::vector<T> content) {
+        for(auto i : content) {
+            this->arr.push_back(i);
+        }
+    }
+
     bool append(T element)
     {
         arr.push_back(element);

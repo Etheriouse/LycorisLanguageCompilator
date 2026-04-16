@@ -1,6 +1,8 @@
-void[] get_vertex() {
+#define hello print
+#define pi 3.12
+#define x MA_LONG_VAR
 
-}
+#include "helloworld.h"
 
 int main() {
     int x = 5782;

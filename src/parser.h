@@ -21,6 +21,7 @@ private:
     std::string next_str;
     bool quit = false;
 
+    
     Function *parseFunction();
 
     Instruction *parseInstruction();

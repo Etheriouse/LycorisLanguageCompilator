@@ -13,6 +13,7 @@ Lexer::Lexer(const char *filename, char separtor)
     this->preprocessor = new Preprocessor(filename);
     this->file = this->preprocessor->process();
     this->separator = separator;
+    std::cout << file << std::endl;
 }
 
 char Lexer::get_char()

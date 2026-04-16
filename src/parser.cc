@@ -9,6 +9,7 @@
 
 #include "lib/utils.h"
 #include "lib/console.h"
+#include "lib/string_operation.h"
 
 using namespace std;
 
@@ -69,7 +70,7 @@ Parser::~Parser()
 }
 
 Program *Parser::parse()
-{
+{   
     List<Function *> list;
     while ((actual != Token::Null && actual != Token::Error) && !quit)
     {
