@@ -51,9 +51,13 @@ std::string TypeToString(Type t)
         if (t == Type::Array(t.e()))
         {
             return TypeToString(t.e()) + "[]";
-        } else if(t == Type::Pointer(t.e())) {
+        }
+        else if (t == Type::Pointer(t.e()))
+        {
             return TypeToString(t.e()) + "*";
-        } else {
+        }
+        else
+        {
             return "Error";
         }
     }
@@ -76,6 +80,10 @@ std::string TypeToString(Type t)
     else if (t == Type::Null())
     {
         return "null";
+    }
+    else if (t == Type::Void())
+    {
+        return "void";
     }
     else
     {

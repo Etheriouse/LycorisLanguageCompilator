@@ -1,5 +1,5 @@
 separator=' '
 bool_keyword='true false'
-keyword='int bool float string const if else while for switch case return'
+keyword='int bool float string void const if else while for switch case return'
 str_separator='"'
 float_separator='.'

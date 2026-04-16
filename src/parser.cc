@@ -286,7 +286,7 @@ Instruction *Parser::parseWhile()
 Instruction *Parser::parseDeclaration()
 {
     bool immutable = str == "const";
-    Optional<Integer> arr_size = Optional<Integer>::empty();
+    Optional<List<Integer>> arr_size = Optional<List<Integer>>::of(new List<Integer>());
     if (immutable)
     {
         nextToken();
@@ -300,7 +300,7 @@ Instruction *Parser::parseDeclaration()
             t = Type::Pointer(t);
         } while (next == Token::Star);
     } 
-    nextToken("after star");
+    nextToken();
     std::string name = str;
     if (next == Token::LSBracket)
     {
@@ -315,10 +315,10 @@ Instruction *Parser::parseDeclaration()
             else if (next == Token::Integer)
             {
                 nextToken();
-                arr_size = Optional<Integer>::of(new Integer(stoi(str.c_str())));
+                arr_size.get()->append(Integer(stoi(str.c_str())));
                 if (next == Token::RSBracket)
                 {
-                    nextToken();
+                    nextToken("size getted ");
                     t = Type::Array(t);
                 }
                 else
@@ -332,9 +332,9 @@ Instruction *Parser::parseDeclaration()
                 errorf("Parser::parseDeclaration, declartion right square bracket not at %lu:%lu\n", lexer->get_index_file(), lexer->get_index_line());
                 quit = true;
             }
-        } while (actual == Token::LSBracket);
+        } while (next == Token::LSBracket);
     }
-    nextToken("after bracket ");
+    nextToken();
 
     if (actual == Token::SemiColon)
     {
@@ -615,7 +615,8 @@ bool isKeywordType(std::string str)
     return str == "float" ||
            str == "int" ||
            str == "string" ||
-           str == "bool";
+           str == "bool" ||
+           str == "void";
 }
 
 Type getTypeFrom(std::string str)
@@ -636,6 +637,8 @@ Type getTypeFrom(std::string str)
     else if (str == "string")
     {
         t = Type::String();
+    } else if(str == "void") {
+        t = Type::Void();
     }
     return t;
 }

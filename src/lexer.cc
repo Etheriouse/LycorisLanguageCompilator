@@ -10,13 +10,8 @@ bool isIdentChar(char i) {
 
 Lexer::Lexer(const char *filename, char separtor)
 {
-    std::ifstream file(filename);
-    if (!file)
-        throw std::runtime_error("Cannot open file");
-
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    this->file = buffer.str();
+    this->preprocessor = new Preprocessor(filename);
+    this->file = this->preprocessor->process();
     this->separator = separator;
 }
 

@@ -4,12 +4,13 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <sstream>
 
 template <typename T>
 class List;
 
 template <typename T>
-std::ostream& operator<<(std::ostream&, const List<T>&);
+std::ostream &operator<<(std::ostream &, const List<T> &);
 
 template <typename T>
 class List
@@ -57,7 +58,8 @@ public:
         return element;
     }
 
-    static List getEmpty() {
+    static List getEmpty()
+    {
         return List();
     }
 
@@ -71,27 +73,31 @@ public:
         return arr[i];
     }
 
+    std::string to_string() const
+    {
+        std::string str = "[";
+        for (size_t i = 0; i < arr.size(); i++)
+        {
+            if (i > 0)
+            {
+                str += ", ";
+            }
+            std::ostringstream oss;
+            oss << arr[i];
+            str += oss.str();
+        }
+        str += "]";
+        return str;
+    }
+
 private:
     std::vector<T> arr;
-
-    template <typename U>
-    friend std::ostream &operator<<(std::ostream &, const List<U> &);
 };
 
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const List<T> &l)
 {
-    os << "[";
-    for (size_t i = 0; i < l.length; i++)
-    {
-        if (i > 0)
-        {
-            os << ", ";
-        }
-        os << l[i];
-    }
-    os << "]";
-    return os;
+    return os << l.to_string();
 }
 
 #endif

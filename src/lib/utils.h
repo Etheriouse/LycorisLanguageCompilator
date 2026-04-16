@@ -43,6 +43,7 @@ public:
         bool_,
         array_,
         ptr,
+        void_,
         null_
     };
 
@@ -65,6 +66,9 @@ public:
     static Type Null()
     {
         return Type(null_);
+    }
+    static Type Void() {
+        return Type(void_);
     }
     static Type Array(Type t)
     {

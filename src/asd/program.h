@@ -385,7 +385,8 @@ public:
             str += ", " + value.get()->to_string();
         }
         if(!arr_size.isEmpty()) {
-            str += ", " + arr_size.get()->to_string();
+            str += ", ";
+            str += arr_size.get()->to_string();
         }
         return str + ")";
     }
@@ -402,11 +403,11 @@ public:
             value.get()->pretty_print();
         }
         if(!arr_size.isEmpty()) {
-            std::cout << " size(" << arr_size.get()->getInt() << ")";
+            std::cout << " size" << (*arr_size.get());
         }
         std::cout << ";" << std::endl;
     }
-    Declaration(Type t, Optional<Integer> arr_size, std::string name, Optional<Expression> v)
+    Declaration(Type t, Optional<List<Integer>> arr_size, std::string name, Optional<Expression> v)
     {
         this->type = t;
         this->name = name;
@@ -423,7 +424,7 @@ public:
     Type type;
     std::string name;
     Optional<Expression> value;
-    Optional<Integer> arr_size;
+    Optional<List<Integer>> arr_size;
 };
 
 class Affectation : public Instruction

@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include "preprocessor.h"
 
 enum class Token
 {
@@ -86,6 +87,9 @@ private:
     std::string file;
     std::vector<std::string> keywords;
     std::vector<std::string> bool_keywords;
+
+    Preprocessor *preprocessor;
+
     u_int64_t index = 0;
     
     u_int64_t index_line_prev = 1;
