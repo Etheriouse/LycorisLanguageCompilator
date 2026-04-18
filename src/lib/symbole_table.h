@@ -4,7 +4,8 @@
 #include <vector>
 #include <map>
 #include <string>
-#include "../asd/program.h"
+#include "../asd/lycoris_asd.h"
+#include "../asd/operator_tad.h"
 
 class SymboleTable
 {
