@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <iostream>
 
 #include "operator_tad.h"
 #include "optional.h"
@@ -27,9 +28,10 @@ public:
     virtual void pretty_print() const = 0;
     virtual string to_string() const override = 0;
     virtual int getInt() { throw runtime_error("Not an int"); }
-    virtual bool getBool() { throw runtime_error("Not an bool"); }
-    virtual float getFloat() { throw runtime_error("Not an float"); }
+    virtual bool getBool() { throw runtime_error("Not a bool"); }
+    virtual float getFloat() { throw runtime_error("Not a float"); }
     virtual string getString() { throw runtime_error("Not an string"); }
+    virtual char getChar() { throw runtime_error("Not a char"); }
 };
 
 class Instruction
@@ -48,7 +50,7 @@ public:
     String(string str) : str(str) {};
     string getString() { return str; }
     string to_string() const override { return "String(" + str + ")"; }
-    void pretty_print() const override {};
+    void pretty_print() const override { cout << "\"" << str << "\""; };
     string str;
 };
 
@@ -58,7 +60,7 @@ public:
     Integer(int n) : n(n) {};
     int getInt() { return n; }
     string to_string() const override { return "Integer(" + std::to_string(n) + ")"; }
-    void pretty_print() const override {};
+    void pretty_print() const override { cout << n; };
     int n;
 };
 
@@ -68,7 +70,7 @@ public:
     Float(float x) : x(x) {};
     float getFloat() { return x; }
     string to_string() const override { return "Float(" + std::to_string(x) + ")"; }
-    void pretty_print() const override {};
+    void pretty_print() const override { cout << x; };
     float x;
 };
 
@@ -78,8 +80,22 @@ public:
     Bool(bool b) : b(b) {};
     bool getBool() { return b; }
     string to_string() const override { return "Bool(" + std::to_string(b) + ")"; }
-    void pretty_print() const override {};
+    void pretty_print() const override { cout << (b ? "true" : "false"); };
     bool b;
+};
+
+class Char : public Value
+{
+public:
+    Char(char c) : c(c) {};
+    char getChar() { return c; }
+    string to_string() const override
+    {
+        ;
+        return "Char(" + std::to_string(c) + ")";
+    }
+    void pretty_print() const override { cout << "'" << c << "'"; };
+    char c;
 };
 
 class ArrayAtom : public Expression
@@ -87,7 +103,12 @@ class ArrayAtom : public Expression
 public:
     ArrayAtom(string name, Expression *expr) : name(name), index(expr) {};
     string to_string() const override { return "ArrayAtom(" + name + ", " + index->to_string() + ")"; }
-    void pretty_print() const override {};
+    void pretty_print() const override
+    {
+        cout << name << "[";
+        index->pretty_print();
+        cout << "]";
+    };
     string name;
     Expression *index;
 };
@@ -97,7 +118,7 @@ class Variable : public Expression
 public:
     Variable(string name) : name(name) {};
     string to_string() const override { return "Variable(" + name + ")"; }
-    void pretty_print() const override {};
+    void pretty_print() const override { cout << name; };
     string name;
 };
 
@@ -106,7 +127,12 @@ class Unary : public Expression
 public:
     Unary(Operator op, Expression *expr) : op(op), a(expr) {};
     string to_string() const override { return "Unary(" + (op.to_string()) + ", " + a->to_string() + ")"; }
-    void pretty_print() const override {};
+    void pretty_print() const override
+    {
+        op.pretty_print();
+        cout << " ";
+        a->pretty_print();
+    };
     Operator op;
     Expression *a;
 };
@@ -116,7 +142,14 @@ class Binop : public Expression
 public:
     Binop(Operator op, Expression *expr1, Expression *expr2) : op(op), a(expr1), b(expr2) {};
     string to_string() const override { return "Binop(" + (op.to_string()) + ", " + a->to_string() + ", " + b->to_string() + ")"; }
-    void pretty_print() const override {};
+    void pretty_print() const override
+    {
+        a->pretty_print();
+        cout << " ";
+        op.pretty_print();
+        cout << " ";
+        b->pretty_print();
+    };
     Operator op;
     Expression *a;
     Expression *b;
@@ -139,7 +172,19 @@ public:
         };
         return s + ")";
     }
-    void pretty_print() const override {};
+    void pretty_print() const override
+    {
+        cout << name << "(";
+        int i = 0;
+        for (auto exp : parameters)
+        {
+            if (i > 0)
+                cout << ", ";
+            exp->pretty_print();
+            i++;
+        };
+        cout << ")";
+    };
     string name;
     vector<Expression *> parameters;
 };
@@ -266,5 +311,9 @@ public:
     }
     void pretty_print(int ident) const override {}
     vector<Instruction *> instructions;
+};
+
+class Program
+{
 };
 #endif

@@ -1,0 +1,15 @@
+"hello" + 4 * 8 + 4;
+14;
+world;
+callfunc();
+callfuncarg(4, "hel", '4');
+arraya[4];
+arr[4+8*7];
+1.0;
+.5;
+true;
+'d';
+!4;
+true==false;
+"z" + 7 / 4 * 8 + &-***"e";
+!&x;
