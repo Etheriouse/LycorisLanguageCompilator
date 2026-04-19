@@ -14,9 +14,13 @@ public:
   enum {
     T__0 = 1, T__1 = 2, T__2 = 3, T__3 = 4, T__4 = 5, T__5 = 6, T__6 = 7, 
     T__7 = 8, T__8 = 9, T__9 = 10, T__10 = 11, T__11 = 12, T__12 = 13, T__13 = 14, 
-    T__14 = 15, T__15 = 16, LP = 17, RP = 18, LC = 19, RC = 20, LA = 21, 
-    RA = 22, COMMA = 23, SEMICOLON = 24, NEWLINE = 25, WS = 26, INT = 27, 
-    FLOAT = 28, BOOL = 29, IDENT = 30, CHAR = 31, STRING = 32
+    T__14 = 15, T__15 = 16, T__16 = 17, T__17 = 18, T__18 = 19, T__19 = 20, 
+    T__20 = 21, T__21 = 22, T__22 = 23, T__23 = 24, T__24 = 25, T__25 = 26, 
+    T__26 = 27, T__27 = 28, T__28 = 29, T__29 = 30, T__30 = 31, T__31 = 32, 
+    T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, LP = 37, RP = 38, LC = 39, 
+    RC = 40, LA = 41, RA = 42, COMMA = 43, SEMICOLON = 44, ASSIGN = 45, 
+    NEWLINE = 46, WS = 47, INT = 48, FLOAT = 49, BOOL = 50, IDENT = 51, 
+    CHAR = 52, STRING = 53
   };
 
   explicit lycorisLexer(antlr4::CharStream *input);

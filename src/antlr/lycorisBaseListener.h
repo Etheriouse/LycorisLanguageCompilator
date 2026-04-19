@@ -19,8 +19,44 @@ public:
   virtual void enterProg(lycorisParser::ProgContext * /*ctx*/) override { }
   virtual void exitProg(lycorisParser::ProgContext * /*ctx*/) override { }
 
+  virtual void enterDefinition(lycorisParser::DefinitionContext * /*ctx*/) override { }
+  virtual void exitDefinition(lycorisParser::DefinitionContext * /*ctx*/) override { }
+
+  virtual void enterParamfunction(lycorisParser::ParamfunctionContext * /*ctx*/) override { }
+  virtual void exitParamfunction(lycorisParser::ParamfunctionContext * /*ctx*/) override { }
+
+  virtual void enterParamun(lycorisParser::ParamunContext * /*ctx*/) override { }
+  virtual void exitParamun(lycorisParser::ParamunContext * /*ctx*/) override { }
+
+  virtual void enterMulparam(lycorisParser::MulparamContext * /*ctx*/) override { }
+  virtual void exitMulparam(lycorisParser::MulparamContext * /*ctx*/) override { }
+
+  virtual void enterInstruction(lycorisParser::InstructionContext * /*ctx*/) override { }
+  virtual void exitInstruction(lycorisParser::InstructionContext * /*ctx*/) override { }
+
+  virtual void enterIndexarr(lycorisParser::IndexarrContext * /*ctx*/) override { }
+  virtual void exitIndexarr(lycorisParser::IndexarrContext * /*ctx*/) override { }
+
+  virtual void enterDeclaration(lycorisParser::DeclarationContext * /*ctx*/) override { }
+  virtual void exitDeclaration(lycorisParser::DeclarationContext * /*ctx*/) override { }
+
+  virtual void enterStaticarr(lycorisParser::StaticarrContext * /*ctx*/) override { }
+  virtual void exitStaticarr(lycorisParser::StaticarrContext * /*ctx*/) override { }
+
+  virtual void enterExprlist(lycorisParser::ExprlistContext * /*ctx*/) override { }
+  virtual void exitExprlist(lycorisParser::ExprlistContext * /*ctx*/) override { }
+
+  virtual void enterAffectation(lycorisParser::AffectationContext * /*ctx*/) override { }
+  virtual void exitAffectation(lycorisParser::AffectationContext * /*ctx*/) override { }
+
+  virtual void enterType(lycorisParser::TypeContext * /*ctx*/) override { }
+  virtual void exitType(lycorisParser::TypeContext * /*ctx*/) override { }
+
   virtual void enterExpr(lycorisParser::ExprContext * /*ctx*/) override { }
   virtual void exitExpr(lycorisParser::ExprContext * /*ctx*/) override { }
+
+  virtual void enterOr(lycorisParser::OrContext * /*ctx*/) override { }
+  virtual void exitOr(lycorisParser::OrContext * /*ctx*/) override { }
 
   virtual void enterMor_(lycorisParser::Mor_Context * /*ctx*/) override { }
   virtual void exitMor_(lycorisParser::Mor_Context * /*ctx*/) override { }

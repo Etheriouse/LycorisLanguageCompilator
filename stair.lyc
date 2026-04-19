@@ -1,0 +1,21 @@
+int main() {
+    int width = 5, heigth = 5;
+    char content[5][5];
+    int i = 0, y = 0;
+    while(i < heigth) {
+        while(y < width) {
+            content[i][y] = y < i ? '*': ' ';
+        }
+    }
+    while(i < heigth) {
+        while(y < width) {
+            printf(content[i][y]);
+        }
+    }
+}
+
+int fact(int i) {
+    if(i == 1) return i;
+
+    return fact(i-1)*i;
+}

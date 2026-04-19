@@ -19,7 +19,55 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitDefinition(lycorisParser::DefinitionContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitParamfunction(lycorisParser::ParamfunctionContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitParamun(lycorisParser::ParamunContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitMulparam(lycorisParser::MulparamContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitInstruction(lycorisParser::InstructionContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitIndexarr(lycorisParser::IndexarrContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitDeclaration(lycorisParser::DeclarationContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitStaticarr(lycorisParser::StaticarrContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitExprlist(lycorisParser::ExprlistContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitAffectation(lycorisParser::AffectationContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitType(lycorisParser::TypeContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitExpr(lycorisParser::ExprContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
+  virtual std::any visitOr(lycorisParser::OrContext *ctx) override {
     return visitChildren(ctx);
   }
 

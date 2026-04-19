@@ -21,7 +21,31 @@ public:
    */
     virtual std::any visitProg(lycorisParser::ProgContext *context) = 0;
 
+    virtual std::any visitDefinition(lycorisParser::DefinitionContext *context) = 0;
+
+    virtual std::any visitParamfunction(lycorisParser::ParamfunctionContext *context) = 0;
+
+    virtual std::any visitParamun(lycorisParser::ParamunContext *context) = 0;
+
+    virtual std::any visitMulparam(lycorisParser::MulparamContext *context) = 0;
+
+    virtual std::any visitInstruction(lycorisParser::InstructionContext *context) = 0;
+
+    virtual std::any visitIndexarr(lycorisParser::IndexarrContext *context) = 0;
+
+    virtual std::any visitDeclaration(lycorisParser::DeclarationContext *context) = 0;
+
+    virtual std::any visitStaticarr(lycorisParser::StaticarrContext *context) = 0;
+
+    virtual std::any visitExprlist(lycorisParser::ExprlistContext *context) = 0;
+
+    virtual std::any visitAffectation(lycorisParser::AffectationContext *context) = 0;
+
+    virtual std::any visitType(lycorisParser::TypeContext *context) = 0;
+
     virtual std::any visitExpr(lycorisParser::ExprContext *context) = 0;
+
+    virtual std::any visitOr(lycorisParser::OrContext *context) = 0;
 
     virtual std::any visitMor_(lycorisParser::Mor_Context *context) = 0;
 

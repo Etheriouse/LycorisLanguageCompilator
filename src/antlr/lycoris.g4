@@ -1,43 +1,79 @@
 grammar lycoris;
 
-prog: ( expr SEMICOLON )* EOF;
+prog: definition* EOF;
 
-// instruction: 
-//     'if' |
-//     'while' |
-//     'for' |
-//     ;
+definition: type IDENT LP paramfunction RP instruction;
 
-expr: a=xor_ b=mor_*;
+paramfunction: (t1=paramun tn=mulparam*)?;
 
-mor_: (op='||' b=xor_);
+paramun: type IDENT staticarr;
 
-xor_: a=and_ b=mxor_*;
+mulparam: (COMMA tn=paramun);
 
-mxor_: (op='<>' b=and_);
+instruction:
+	'if' LP ifcond = expr RP ifblock = instruction (
+		'else' elseblock = instruction
+	)?
+	| 'while' LP whilecond = expr RP whileblock = instruction
+	| 'for' LP (tinit = type dinit = declaration)? SEMICOLON (
+		forcond = expr
+	)? SEMICOLON (aftername = IDENT after = affectation)? RP forblock = instruction
+	| 'return' ret = expr SEMICOLON
+	| namec = IDENT (
+		LP parameter = exprlist RP
+		| indexarr* aff = affectation
+	) SEMICOLON
+	| type var = IDENT sarr = staticarr (ASSIGN value = expr)? declaration* SEMICOLON
+	| LA block = instruction* RA;
 
-and_: a=equal b=mand_*;
+indexarr: (LC expr RC);
 
-mand_: (op='&&' b=equal);
+declaration: (
+		COMMA var = IDENT sarr = staticarr (ASSIGN value = expr)?
+	);
 
-equal: a=comparaison b=mequal*;
+staticarr: (LC INT RC)*;
 
-mequal: (op=('==' | '!=') b=comparaison);
+exprlist: (expr (COMMA expr)*)?;
 
-comparaison: a=addsub b=mcomparaison*;
+affectation: op=( ASSIGN | '+=' | '-=' | '*=' | '/=' | '&=' | '<>=' | '|=') assign = expr;
 
-mcomparaison: (op=('<' | '>' | '<=' | '>=') b=addsub);
+type:
+	raw = ('int' | 'float' | 'string' | 'char' | 'bool' | 'void') (
+		('*')+
+	)?;
 
-addsub: a=muldivmod b=maddsub*;
+expr: a=or ('?' b=expr ':' c=expr)?;
 
-maddsub: (op=( '+' | '-' ) b=muldivmod);
+or: a = xor_ b = mor_*;
 
-muldivmod: a=unary b=mmuldivmod*;
+mor_: (op = '||' b = xor_);
 
-mmuldivmod: (op=('*' | '/' | '%') b=unary);
+xor_: a = and_ b = mxor_*;
 
-unary: op=( '*' | '&' | '-' | '!') unary | a=atom;
+mxor_: (op = '<>' b = and_);
 
+and_: a = equal b = mand_*;
+
+mand_: (op = '&&' b = equal);
+
+equal: a = comparaison b = mequal*;
+
+mequal: (op = ('==' | '!=') b = comparaison);
+
+comparaison: a = addsub b = mcomparaison*;
+
+mcomparaison: (op = ('<' | '>' | '<=' | '>=') b = addsub);
+
+addsub: a = muldivmod b = maddsub*;
+
+maddsub: (op = ( '+' | '-') b = muldivmod);
+
+muldivmod: a = unary b = mmuldivmod*;
+
+mmuldivmod: (op = ('*' | '/' | '%') b = unary);
+
+unary: op = ( '*' | '&' | '-' | '!') unary | a = atom;
 
 atom:
 	INT
@@ -45,9 +81,8 @@ atom:
 	| STRING
 	| CHAR
 	| BOOL
-	| IDENT ( LP (expr (COMMA expr)*)? RP | LC expr RC)?
-    | LP expr RP
-    ;
+	| IDENT ( LP param=exprlist RP | arr=indexarr+)?
+	| LP expr RP;
 
 LP: '(';
 RP: ')';
@@ -60,6 +95,8 @@ RA: '}';
 
 COMMA: ',';
 SEMICOLON: ';';
+
+ASSIGN: '=';
 
 NEWLINE: [\r\n]+ -> skip;
 WS: [ \t]+ -> skip;

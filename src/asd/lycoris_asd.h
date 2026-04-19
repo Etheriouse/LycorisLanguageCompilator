@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#define tab "   "
+
 /* Define interface */
 
 class Expression
@@ -101,16 +103,29 @@ public:
 class ArrayAtom : public Expression
 {
 public:
-    ArrayAtom(string name, Expression *expr) : name(name), index(expr) {};
-    string to_string() const override { return "ArrayAtom(" + name + ", " + index->to_string() + ")"; }
+    ArrayAtom(string name, vector<Expression *> expr) : name(name), index(expr) {};
+    string to_string() const override
+    {
+        string s = "ArrayAtom(" + name;
+        for (auto exp : index)
+        {
+            s += ", ";
+            s += exp->to_string();
+        };
+        return s + ")";
+    }
     void pretty_print() const override
     {
-        cout << name << "[";
-        index->pretty_print();
-        cout << "]";
+        cout << name;
+        for (auto exp : index)
+        {
+            cout << "[";
+            exp->pretty_print();
+            cout << "]";
+        };
     };
     string name;
-    Expression *index;
+    vector<Expression *> index;
 };
 
 class Variable : public Expression
@@ -130,7 +145,6 @@ public:
     void pretty_print() const override
     {
         op.pretty_print();
-        cout << " ";
         a->pretty_print();
     };
     Operator op;
@@ -189,13 +203,38 @@ public:
     vector<Expression *> parameters;
 };
 
+class Ternary : public Expression {
+    public:
+    Ternary(Expression *a, Expression *b, Expression *c): a(a), b(b), c(c) {};
+    string to_string() const override { return "Ternary(" + a->to_string() + ", " + b->to_string() + ", " + c->to_string() + ")"; }
+    void pretty_print() const override {
+        a->pretty_print();
+        cout << " ? ";
+        b->pretty_print();
+        cout << " : ";
+        c->pretty_print();
+    }
+    Expression *a, *b, *c;
+};
+
 class If : public Instruction
 {
 public:
     If(Expression *expr, Instruction *inst) : condition(expr), ifblock(inst), elseblock(Optional<Instruction>::empty()) {}
     If(Expression *expr, Instruction *inst1, Instruction *inst2) : condition(expr), ifblock(inst1), elseblock(Optional<Instruction>::of(inst2)) {}
     std::string to_string() const override { return "If(" + condition->to_string() + ", " + ifblock->to_string() + (elseblock.isPresent() ? ", " + elseblock.get()->to_string() + ")" : ")"); };
-    void pretty_print(int ident) const override {}
+    void pretty_print(int ident) const override
+    {
+        cout << "if (";
+        condition->pretty_print();
+        cout << ") ";
+        ifblock->pretty_print(ident + 1);
+        if (elseblock.isPresent())
+        {
+            cout << "else ";
+            elseblock.get()->pretty_print(ident + 1);
+        }
+    }
     Expression *condition;
     Instruction *ifblock;
     Optional<Instruction> elseblock;
@@ -206,7 +245,13 @@ class While : public Instruction
 public:
     While(Expression *expr, Instruction *inst) : condition(expr), block(inst) {}
     std::string to_string() const override { return "While(" + condition->to_string() + ", " + block->to_string() + ")"; }
-    void pretty_print(int ident) const override {}
+    void pretty_print(int ident) const override
+    {
+        cout << "while (";
+        condition->pretty_print();
+        cout << ")";
+        block->pretty_print(ident + 1);
+    }
     Expression *condition;
     Instruction *block;
 };
@@ -214,22 +259,81 @@ public:
 class Affectation : public Instruction
 {
 public:
-    Affectation(string name, Expression *expr) : name(name), value(expr) {};
-    std::string to_string() const override { return "Affectation(" + name + ", " + value->to_string() + ")"; }
-    void pretty_print(int ident) const override {}
+    Affectation(string name, Expression *expr) : name(name), value(expr), index(vector<Expression *>()) {};
+    Affectation(string name, Expression *expr1, vector<Expression *> expr2) : name(name), value(expr1), index(expr2) {};
+    std::string to_string() const override
+    {
+        string str = "Affectation(" + name + ", ";
+        for (auto ind : index)
+        {
+            str += ind->to_string();
+            str += ", ";
+        }
+        return str + value->to_string() + ")";
+    }
+    void pretty_print(int ident) const override
+    {
+        cout << name;
+        for (auto ind : index)
+        {
+            cout << "[";
+            ind->pretty_print();
+            cout << "]";
+        }
+        cout << "=";
+        value->pretty_print();
+        cout << ";";
+    }
     string name;
     Expression *value;
+    vector<Expression *> index;
 };
 
 class Declaration : public Instruction
 {
 public:
-    Declaration(string name, Type type, Expression *expr) : name(name), type(type), value(expr) {};
-    std::string to_string() const override { return "Declaration(" + name + ", " + type.to_string() + (value.isPresent() ? ", " + value.get()->to_string() + ")" : ")"); }
-    void pretty_print(int ident) const override {}
-    string name;
+    typedef struct
+    {
+        string name;
+        Optional<Expression> value;
+    } Declare;
+
+    Declaration(Type type, vector<Declare> content) : type(type), variables(content) {};
+    std::string to_string() const override
+    {
+        std::string str = "Declaration(" + type.to_string();
+        for (Declare d : variables)
+        {
+            str += ", ";
+            str += "(" + d.name;
+            if (d.value.isPresent())
+            {
+                str += ", " + d.value.get()->to_string();
+            }
+            str += ")";
+        }
+        return str + ")";
+    }
+    void pretty_print(int ident) const override
+    {
+        cout << type.to_string() << " ";
+        int i = 0;
+        for (Declare d : variables)
+        {
+            if (i > 0)
+                cout << ", ";
+            cout << d.name;
+            if (d.value.isPresent())
+            {
+                cout << " = ";
+                d.value.get()->pretty_print();
+            }
+            i++;
+        }
+        cout << ";";
+    }
     Type type;
-    Optional<Expression> value;
+    vector<Declare> variables;
 };
 
 class For : public Instruction
@@ -277,10 +381,24 @@ public:
         return str += ")";
     }
 
-    void pretty_print(int ident) const override {}
+    void pretty_print(int ident) const override
+    {
+        cout << "for(";
+        if (initIterator.isPresent())
+            initIterator.get()->pretty_print(ident);
+        cout << ";";
+        if (condition.isPresent())
+            condition.get()->pretty_print();
+        cout << ";";
+        if (afterOperation.isPresent())
+            afterOperation.get()->pretty_print(ident);
+        cout << ")";
+        block->pretty_print(ident + 1);
+    }
     Optional<Declaration> initIterator;
     Optional<Expression> condition;
     Optional<Affectation> afterOperation;
+    Instruction *block; // TODO la rajouter dans tout les constructeur
 };
 
 class Return : public Instruction
@@ -288,8 +406,22 @@ class Return : public Instruction
 public:
     Return(Expression *expr) : value(expr) {};
     std::string to_string() const override { return "Return(" + value->to_string() + ")"; }
-    void pretty_print(int ident) const override {}
+    void pretty_print(int ident) const override
+    {
+        cout << "return ";
+        value->pretty_print();
+        cout << ";";
+    }
     Expression *value;
+};
+
+class CallInstruction : public Instruction
+{
+public:
+    CallInstruction(Call *c) : call(c) {};
+    std::string to_string() const override { return call->to_string(); }
+    void pretty_print(int ident) const override { call->pretty_print();cout<<";"; }
+    Call *call;
 };
 
 class Block : public Instruction
@@ -309,11 +441,89 @@ public:
         str += join(parts, ", ");
         return str += ")";
     }
-    void pretty_print(int ident) const override {}
+
+    void pretty_print(int ident) const override
+    {
+        cout << endl;
+        for (int i = 0; i < ident - 1; i++)
+        {
+            cout << tab;
+        }
+        cout << "{" << endl;
+        for (auto instr : instructions)
+        {
+            for (int i = 0; i < ident; i++)
+            {
+                cout << tab;
+            }
+            instr->pretty_print(ident);
+            cout << endl;
+        }
+        for (int i = 0; i < ident - 1; i++)
+        {
+            cout << tab;
+        }
+        cout << "}" << endl;
+    }
+
     vector<Instruction *> instructions;
+};
+
+class Definition
+{
+public:
+    typedef struct {
+        Type t;
+        string name;
+    } Parameter;
+
+    Definition(Type t, string name, vector<Parameter> list, Instruction *i) : t(t), name(name), parameters(list), block(i) {};
+    std::string to_string() const
+    {
+        string str = "Definition(" + t.to_string() + ", " + name;
+        for(auto p : parameters) {
+            str+=(", " + p.t.to_string() + " " + p.name);
+        }
+        str += block->to_string();
+        return str + ")";
+    }
+    void pretty_print(int ident) const
+    {
+        cout << t.to_string() << " " << name << "(";
+        int i = 0;
+        for(auto p : parameters) {
+            if(i > 0) cout << ", ";
+            cout << p.t.to_string() << " " << p.name;
+        }
+        cout << ")";
+        block->pretty_print(ident+1);
+    }
+    Type t;
+    string name;
+    vector<Parameter> parameters;
+    Instruction *block;
 };
 
 class Program
 {
+public:
+    Program(vector<Definition *> defs) : defs(defs) {};
+    std::string to_string() const
+    {
+        string str = "Program(";
+        for (auto def : defs)
+        {
+            str += def->to_string();
+        }
+        return str + ")";
+    }
+    void pretty_print(int ident) const
+    {
+        for (auto def : defs)
+        {
+            def->pretty_print(0);
+        }
+    }
+    vector<Definition *> defs;
 };
 #endif

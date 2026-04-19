@@ -1,15 +1,15 @@
-"hello" + 4 * 8 + 4;
-14;
-world;
-callfunc();
-callfuncarg(4, "hel", '4');
-arraya[4];
-arr[4+8*7];
-1.0;
-.5;
-true;
-'d';
-!4;
-true==false;
-"z" + 7 / 4 * 8 + &-***"e";
-!&x;
+{
+    if (x == 0) x = 8;
+    int x = 0, y=-1, z;
+
+    if(t==0) {
+        int arr[4][5];
+        while(i < 40) {
+            x = i*i;
+            i+=1;
+            arr[4][9] = 7;
+        }
+    } else {
+        int *arr;
+    }
+}

@@ -3,6 +3,7 @@
 #include "lib/symbole_table.h"
 #include <iostream>
 #include <vector>
+#include "lib/console.h"
 
 #include "antlr/lycorisParser.h"
 #include "antlr/lycorisLexer.h"
@@ -18,18 +19,248 @@ class Visitor : public lycorisBaseVisitor
 public:
     std::any visitProg(lycorisParser::ProgContext *ctx) override
     {
-        cout << ctx->expr().size() << endl;
-        for (auto expr : ctx->expr())
+        vector<Definition *> instrs;
+        for (auto expr : ctx->definition())
         {
-            Expression *a = any_cast<Expression *>(expr->accept(this));
-            // cout << a->to_string() << endl;
-            a->pretty_print();
-            cout << endl;
-            cout << a->to_string() << endl;
+            instrs.push_back(any_cast<Definition *>(expr->accept(this)));
+        }
+        Program *p = new Program(instrs);
+        return p;
+    }
+
+    std::any visitDefinition(lycorisParser::DefinitionContext *ctx) override
+    {
+        Type t = any_cast<Type>(ctx->type()->accept(this));
+        string name = ctx->IDENT()->getText();
+        vector<Definition::Parameter> param = any_cast<vector<Definition::Parameter>>(ctx->paramfunction()->accept(this));
+        Instruction *i = any_cast<Instruction *>(ctx->instruction()->accept(this));
+        return new Definition(t, name, param, i);
+    }
+
+    std::any visitParamfunction(lycorisParser::ParamfunctionContext *ctx) override
+    {
+        vector<Definition::Parameter> param;
+        if (ctx->t1)
+        {
+            if (ctx->t1->type()->children.size() > 1 && ctx->t1->staticarr()->INT().size() > 0)
+                throw runtime_error("can't create a pointer static array");
+
+            Type t = any_cast<Type>(ctx->t1->type()->accept(this));
+            if (ctx->t1->type()->children.size() > 1)
+            {
+                for (auto child : ctx->t1->type()->children)
+                {
+                    if (child->getText() == "*")
+                    {
+                        t = Type::Pointer(t);
+                    }
+                }
+            }
+            for (auto size : ctx->t1->staticarr()->INT())
+            {
+                t = Type::Array(t, stoi(size->getText()));
+            }
+            param.push_back((Definition::Parameter){t, ctx->t1->IDENT()->getText()});
+            return param;
+        }
+        else if (ctx->tn)
+        {
+            for(auto param_ : ctx->mulparam()) {
+                if (param_->tn->type()->children.size() > 1 && param_->tn->staticarr()->INT().size() > 0)
+                    throw runtime_error("can't create a pointer static array");
+    
+                Type t = any_cast<Type>(param_->tn->type()->accept(this));
+                if (param_->tn->type()->children.size() > 1)
+                {
+                    for (auto child : param_->tn->type()->children)
+                    {
+                        if (child->getText() == "*")
+                        {
+                            t = Type::Pointer(t);
+                        }
+                    }
+                }
+                for (auto size : param_->tn->staticarr()->INT())
+                {
+                    t = Type::Array(t, stoi(size->getText()));
+                }
+                param.push_back((Definition::Parameter){t, param_->tn->IDENT()->getText()});
+            }
+            return param;
+        }
+        else
+        {
+            return param;
         }
     }
 
+    std::any visitInstruction(lycorisParser::InstructionContext *ctx) override
+    {
+        if (ctx->ifcond)
+        {
+            Expression *condition = any_cast<Expression *>(ctx->ifcond->accept(this));
+            Instruction *ifblock = any_cast<Instruction *>(ctx->ifblock->accept(this));
+            if (ctx->elseblock)
+            {
+                Instruction *elseblock = any_cast<Instruction *>(ctx->elseblock->accept(this));
+                return (Instruction *)new If(condition, ifblock, elseblock);
+            }
+            else
+            {
+                return (Instruction *)new If(condition, ifblock);
+            }
+        }
+        else if (ctx->whilecond)
+        {
+            Expression *condition = any_cast<Expression *>(ctx->whilecond->accept(this));
+            Instruction *block = any_cast<Instruction *>(ctx->whileblock->accept(this));
+            return (Instruction *)new While(condition, block);
+        }
+        else if (ctx->forblock)
+        {
+            log("for");
+            // for
+        }
+        else if (ctx->ret)
+        {
+            return (Instruction *)new Return(any_cast<Expression *>(ctx->ret->accept(this)));
+        }
+        else if (ctx->parameter)
+        {
+            vector<Expression *> parameter;
+            for (auto element : ctx->parameter->children)
+            {
+                parameter.push_back(any_cast<Expression *>(element->accept(this)));
+            }
+            return (Instruction *)new CallInstruction(new Call(ctx->namec->getText(), parameter));
+        }
+        else if (ctx->aff)
+        {
+            string op = ctx->aff->op->getText();
+            string name = ctx->namec->getText();
+            Expression *e = any_cast<Expression *>(ctx->aff->assign->accept(this));
+            vector<Expression *> idx;
+            for (auto index : ctx->indexarr())
+            {
+                idx.push_back(any_cast<Expression *>(index->expr()->accept(this)));
+            }
+            if (op == "=")
+            {
+                return (Instruction *)new Affectation(name, e, idx);
+            }
+            else
+            {
+                Variable *v = new Variable(name);
+                if (op == "+=")
+                {
+                    return (Instruction *)new Affectation(name, new Binop(Operator::Add(), v, e), idx);
+                }
+                else if (op == "-=")
+                {
+                    return (Instruction *)new Affectation(name, new Binop(Operator::Sub(), v, e), idx);
+                }
+                else if (op == "*=")
+                {
+                    return (Instruction *)new Affectation(name, new Binop(Operator::Mul(), v, e), idx);
+                }
+                else if (op == "/=")
+                {
+                    return (Instruction *)new Affectation(name, new Binop(Operator::Div(), v, e), idx);
+                }
+                else if (op == "&=")
+                {
+                    return (Instruction *)new Affectation(name, new Binop(Operator::And(), v, e), idx);
+                }
+                else if (op == "<>=")
+                {
+                    return (Instruction *)new Affectation(name, new Binop(Operator::Xor(), v, e), idx);
+                }
+                else if (op == "|=")
+                {
+                    return (Instruction *)new Affectation(name, new Binop(Operator::Or(), v, e), idx);
+                }
+            }
+        }
+        else if (ctx->var)
+        {
+            if (ctx->type()->children.size() > 1 && ctx->sarr->INT().size() > 0)
+                throw runtime_error("can't create a pointer static array");
+
+            Type t = any_cast<Type>(ctx->type()->accept(this));
+
+            if (ctx->type()->children.size() > 1)
+            {
+                for (auto child : ctx->type()->children)
+                {
+                    if (child->getText() == "*")
+                    {
+                        t = Type::Pointer(t);
+                    }
+                }
+            }
+
+            for (auto size : ctx->sarr->INT())
+            {
+                t = Type::Array(t, stoi(size->getText()));
+            }
+
+            vector<Declaration::Declare> variables;
+            string namefirst = ctx->var->getText();
+            if (ctx->value)
+            {
+                Expression *valuefirst = any_cast<Expression *>(ctx->value->accept(this));
+                variables.push_back((Declaration::Declare){namefirst, Optional<Expression>::of(valuefirst)});
+            }
+            else
+            {
+                variables.push_back((Declaration::Declare){namefirst, Optional<Expression>::empty()});
+            }
+            for (auto decla : ctx->declaration())
+            {
+                string name = decla->var->getText();
+                if (decla->value)
+                {
+                    Expression *value = any_cast<Expression *>(decla->value->accept(this));
+                    variables.push_back((Declaration::Declare){name, Optional<Expression>::of(value)});
+                }
+                else
+                {
+                    variables.push_back((Declaration::Declare){name, Optional<Expression>::empty()});
+                }
+            }
+            return (Instruction *)new Declaration(t, variables);
+        }
+        else if (ctx->block)
+        {
+            vector<Instruction *> instrs;
+            for (auto instr : ctx->instruction())
+            {
+                instrs.push_back(any_cast<Instruction *>(instr->accept(this)));
+            }
+            return (Instruction *)new Block(instrs);
+        }
+        return (Instruction *)new Return(new Integer(-1));
+    }
+
+    std::any visitType(lycorisParser::TypeContext *ctx) override
+    {
+        Type raw = Type::fromStr(ctx->raw->getText());
+        return raw;
+    }
+
     std::any visitExpr(lycorisParser::ExprContext *ctx) override
+    {
+        Expression *a = any_cast<Expression *>(ctx->a->accept(this));
+        if (ctx->b && ctx->c)
+        {
+            Expression *b = any_cast<Expression *>(ctx->b->accept(this));
+            Expression *c = any_cast<Expression *>(ctx->c->accept(this));
+            return (Expression *)new Ternary(a, b, c);
+        }
+        return a;
+    }
+
+    std::any visitOr(lycorisParser::OrContext *ctx) override
     {
         Expression *a = any_cast<Expression *>(ctx->a->accept(this));
         for (auto expr : ctx->mor_())
@@ -202,22 +433,30 @@ public:
         else if (ctx->IDENT())
         {
             string ident = ctx->IDENT()->getText();
-            if (ctx->expr().size() == 0)
+            if (ctx->arr)
             {
-                e = new Variable(ident);
+                vector<Expression *> idxs;
+                for (auto ind : ctx->indexarr())
+                {
+                    idxs.push_back(any_cast<Expression *>(ind->expr()->accept(this)));
+                }
+                e = new ArrayAtom(ident, idxs);
             }
-            else if (ctx->expr().size() == 1)
+            else if (ctx->exprlist())
             {
-                e = new ArrayAtom(ident, any_cast<Expression *>(ctx->expr()[0]->accept(this)));
+                vector<Expression *> parameters;
+                if (ctx->exprlist()->children.size() > 0)
+                {
+                    for (auto expr : ctx->exprlist()->expr())
+                    {
+                        parameters.push_back(any_cast<Expression *>(expr->accept(this)));
+                    }
+                }
+                e = new Call(ident, parameters);
             }
             else
             {
-                vector<Expression *> parameters;
-                for (auto expr : ctx->expr())
-                {
-                    parameters.push_back(any_cast<Expression *>(expr->accept(this)));
-                }
-                e = new Call(ident, parameters);
+                e = new Variable(ident);
             }
         }
         else
@@ -244,18 +483,9 @@ int main(int argc, char const *argv[])
         lycorisParser parser(&tokens);
 
         antlr4::tree::ParseTree *tree = parser.prog();
-
         Visitor visit;
-        visit.visit(tree);
-        //        Program program = any_cast<Program>(visit.visit(tree));
-
-        // Parser *parser = new Parser(filename.c_str(), config.c_str());
-        // Program *program = parser->parse();
-
-        // cout << (*program) << endl;
-        // program->pretty_print(0);
-
-        // delete program;
+        Program *p = any_cast<Program *>(visit.visit(tree));
+        p->pretty_print(0);
         delete table;
     }
     return 0;

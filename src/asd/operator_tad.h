@@ -13,6 +13,7 @@ public:
     {
         int_,
         float_,
+        char_,
         str_,
         bool_,
         array_,
@@ -21,6 +22,38 @@ public:
         null_
     };
 
+    static Type fromStr(std::string str)
+    {
+        if (str == "int")
+        {
+            return Type::Integer();
+        }
+        else if (str == "float")
+        {
+            return Type::Float();
+        }
+        else if (str == "char")
+        {
+            return Type::Char();
+        }
+        else if (str == "string")
+        {
+            return Type::String();
+        }
+        else if (str == "bool")
+        {
+            return Type::Bool();
+        }
+        else if (str == "void")
+        {
+            return Type::Void();
+        }
+        else
+        {
+            return Type::Null();
+        }
+    }
+
     static Type Integer()
     {
         return Type(int_);
@@ -28,6 +61,10 @@ public:
     static Type Float()
     {
         return Type(float_);
+    }
+    static Type Char()
+    {
+        return Type(char_);
     }
     static Type Bool()
     {
@@ -45,21 +82,24 @@ public:
     {
         return Type(void_);
     }
-    static Type Array(Type t)
+    static Type Array(Type t, int size_)
     {
-        return Type(array_, t);
+        return Type(array_, t, size_);
     }
     static Type Pointer(Type t)
     {
         return Type(ptr_, t);
     }
 
-    Type() : raw(null_), element(nullptr) {};
+    Type() : raw(null_), element(nullptr), size(-1) {};
 
-    Type(raw k) : raw(k), element(nullptr) {}
+    Type(raw k) : raw(k), element(nullptr), size(0) {}
 
     Type(raw k, Type elem)
-        : raw(k), element(std::make_shared<Type>(elem)) {}
+        : raw(k), element(std::make_shared<Type>(elem)), size(0) {}
+
+        Type(raw k, Type elem, int size)
+        : raw(k), element(std::make_shared<Type>(elem)), size(size) {}
 
     bool operator==(const Type &type)
     {
@@ -85,7 +125,7 @@ public:
         switch (raw)
         {
         case raw::array_:
-            return this->element == nullptr ? throw std::runtime_error("Instance of Type Array don't have element") : this->element.get()->to_string() + "[]";
+            return this->element == nullptr ? throw std::runtime_error("Instance of Type Array don't have element") : this->element.get()->to_string() + "[" +std::to_string(size)+ "]";
         case raw::ptr_:
             return this->element == nullptr ? throw std::runtime_error("Instance of Type Pointer don't have element") : this->element.get()->to_string() + "*";
         case raw::int_:
@@ -98,6 +138,8 @@ public:
             return "string";
         case raw::void_:
             return "void";
+        case raw::char_:
+            return "char";
         case raw::null_:
             return "null";
         default:
@@ -107,6 +149,7 @@ public:
 
 private:
     raw raw;
+    int size;
     std::shared_ptr<Type> element;
 };
 
