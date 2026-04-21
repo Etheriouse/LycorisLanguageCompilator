@@ -43,6 +43,10 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual std::any visitFordeclaration(lycorisParser::FordeclarationContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual std::any visitDeclaration(lycorisParser::DeclarationContext *ctx) override {
     return visitChildren(ctx);
   }

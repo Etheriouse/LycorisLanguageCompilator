@@ -25,12 +25,12 @@ public:
 
   enum {
     RuleProg = 0, RuleDefinition = 1, RuleParamfunction = 2, RuleParamun = 3, 
-    RuleMulparam = 4, RuleInstruction = 5, RuleIndexarr = 6, RuleDeclaration = 7, 
-    RuleStaticarr = 8, RuleExprlist = 9, RuleAffectation = 10, RuleType = 11, 
-    RuleExpr = 12, RuleOr = 13, RuleMor_ = 14, RuleXor_ = 15, RuleMxor_ = 16, 
-    RuleAnd_ = 17, RuleMand_ = 18, RuleEqual = 19, RuleMequal = 20, RuleComparaison = 21, 
-    RuleMcomparaison = 22, RuleAddsub = 23, RuleMaddsub = 24, RuleMuldivmod = 25, 
-    RuleMmuldivmod = 26, RuleUnary = 27, RuleAtom = 28
+    RuleMulparam = 4, RuleInstruction = 5, RuleIndexarr = 6, RuleFordeclaration = 7, 
+    RuleDeclaration = 8, RuleStaticarr = 9, RuleExprlist = 10, RuleAffectation = 11, 
+    RuleType = 12, RuleExpr = 13, RuleOr = 14, RuleMor_ = 15, RuleXor_ = 16, 
+    RuleMxor_ = 17, RuleAnd_ = 18, RuleMand_ = 19, RuleEqual = 20, RuleMequal = 21, 
+    RuleComparaison = 22, RuleMcomparaison = 23, RuleAddsub = 24, RuleMaddsub = 25, 
+    RuleMuldivmod = 26, RuleMmuldivmod = 27, RuleUnary = 28, RuleAtom = 29
   };
 
   explicit lycorisParser(antlr4::TokenStream *input);
@@ -57,6 +57,7 @@ public:
   class MulparamContext;
   class InstructionContext;
   class IndexarrContext;
+  class FordeclarationContext;
   class DeclarationContext;
   class StaticarrContext;
   class ExprlistContext;
@@ -178,7 +179,7 @@ public:
     lycorisParser::ExprContext *whilecond = nullptr;
     lycorisParser::InstructionContext *whileblock = nullptr;
     lycorisParser::TypeContext *tinit = nullptr;
-    lycorisParser::DeclarationContext *dinit = nullptr;
+    lycorisParser::FordeclarationContext *dinit = nullptr;
     lycorisParser::ExprContext *forcond = nullptr;
     antlr4::Token *aftername = nullptr;
     lycorisParser::AffectationContext *after = nullptr;
@@ -201,8 +202,7 @@ public:
     std::vector<antlr4::tree::TerminalNode *> SEMICOLON();
     antlr4::tree::TerminalNode* SEMICOLON(size_t i);
     TypeContext *type();
-    std::vector<DeclarationContext *> declaration();
-    DeclarationContext* declaration(size_t i);
+    FordeclarationContext *fordeclaration();
     antlr4::tree::TerminalNode *IDENT();
     AffectationContext *affectation();
     ExprlistContext *exprlist();
@@ -210,6 +210,8 @@ public:
     IndexarrContext* indexarr(size_t i);
     StaticarrContext *staticarr();
     antlr4::tree::TerminalNode *ASSIGN();
+    std::vector<DeclarationContext *> declaration();
+    DeclarationContext* declaration(size_t i);
     antlr4::tree::TerminalNode *LA();
     antlr4::tree::TerminalNode *RA();
 
@@ -238,6 +240,27 @@ public:
   };
 
   IndexarrContext* indexarr();
+
+  class  FordeclarationContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *var = nullptr;
+    lycorisParser::StaticarrContext *sarr = nullptr;
+    lycorisParser::ExprContext *value = nullptr;
+    FordeclarationContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *ASSIGN();
+    antlr4::tree::TerminalNode *IDENT();
+    StaticarrContext *staticarr();
+    ExprContext *expr();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+
+    virtual std::any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  FordeclarationContext* fordeclaration();
 
   class  DeclarationContext : public antlr4::ParserRuleContext {
   public:

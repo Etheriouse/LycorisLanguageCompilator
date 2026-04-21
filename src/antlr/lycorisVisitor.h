@@ -33,6 +33,8 @@ public:
 
     virtual std::any visitIndexarr(lycorisParser::IndexarrContext *context) = 0;
 
+    virtual std::any visitFordeclaration(lycorisParser::FordeclarationContext *context) = 0;
+
     virtual std::any visitDeclaration(lycorisParser::DeclarationContext *context) = 0;
 
     virtual std::any visitStaticarr(lycorisParser::StaticarrContext *context) = 0;

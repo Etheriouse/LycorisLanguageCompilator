@@ -15,7 +15,7 @@ instruction:
 		'else' elseblock = instruction
 	)?
 	| 'while' LP whilecond = expr RP whileblock = instruction
-	| 'for' LP (tinit = type dinit = declaration)? SEMICOLON (
+	| 'for' LP (tinit = type dinit = fordeclaration)? SEMICOLON (
 		forcond = expr
 	)? SEMICOLON (aftername = IDENT after = affectation)? RP forblock = instruction
 	| 'return' ret = expr SEMICOLON
@@ -27,6 +27,8 @@ instruction:
 	| LA block = instruction* RA;
 
 indexarr: (LC expr RC);
+
+fordeclaration: var = IDENT sarr = staticarr ASSIGN value = expr;
 
 declaration: (
 		COMMA var = IDENT sarr = staticarr (ASSIGN value = expr)?

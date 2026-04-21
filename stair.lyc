@@ -1,3 +1,5 @@
+void printf(int x[7][4]) {}
+
 int main() {
     int width = 5, heigth = 5;
     char content[5][5];
@@ -7,6 +9,8 @@ int main() {
             content[i][y] = y < i ? '*': ' ';
         }
     }
+    i=0;
+    y=0;
     while(i < heigth) {
         while(y < width) {
             printf(content[i][y]);

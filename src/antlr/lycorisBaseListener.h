@@ -37,6 +37,9 @@ public:
   virtual void enterIndexarr(lycorisParser::IndexarrContext * /*ctx*/) override { }
   virtual void exitIndexarr(lycorisParser::IndexarrContext * /*ctx*/) override { }
 
+  virtual void enterFordeclaration(lycorisParser::FordeclarationContext * /*ctx*/) override { }
+  virtual void exitFordeclaration(lycorisParser::FordeclarationContext * /*ctx*/) override { }
+
   virtual void enterDeclaration(lycorisParser::DeclarationContext * /*ctx*/) override { }
   virtual void exitDeclaration(lycorisParser::DeclarationContext * /*ctx*/) override { }
 

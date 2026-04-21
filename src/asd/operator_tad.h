@@ -106,7 +106,11 @@ public:
         bool result = type.raw == this->raw;
         if (type.element != nullptr && this->element != nullptr)
         {
+            if(type.raw == raw::array_) {
+                result &= type.size == this->size;
+            }
             result &= (*type.element.get() == *this->element.get());
+
         }
         return result;
     }
@@ -149,8 +153,8 @@ public:
 
 private:
     raw raw;
-    int size;
     std::shared_ptr<Type> element;
+    int size;
 };
 
 class Operator

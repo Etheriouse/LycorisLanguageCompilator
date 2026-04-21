@@ -35,6 +35,9 @@ public:
   virtual void enterIndexarr(lycorisParser::IndexarrContext *ctx) = 0;
   virtual void exitIndexarr(lycorisParser::IndexarrContext *ctx) = 0;
 
+  virtual void enterFordeclaration(lycorisParser::FordeclarationContext *ctx) = 0;
+  virtual void exitFordeclaration(lycorisParser::FordeclarationContext *ctx) = 0;
+
   virtual void enterDeclaration(lycorisParser::DeclarationContext *ctx) = 0;
   virtual void exitDeclaration(lycorisParser::DeclarationContext *ctx) = 0;
 
