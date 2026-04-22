@@ -17,6 +17,7 @@ public:
     } Parameter;
 
     Definition(Type t, std::string name, std::vector<Parameter> list, Instruction *i) : t(t), name(name), parameters(list), block(i) {};
+    ~Definition();
     std::string to_string() const;
     void pretty_print(int ident) const;
     Type t;

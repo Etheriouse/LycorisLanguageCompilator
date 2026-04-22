@@ -3,6 +3,10 @@
 
 #define UNUSED(expr) (void)(expr)
 
+Return::~Return() {
+    delete value;
+}
+
 std::string Return::to_string() const
 {
     return "Return(" + value->to_string() + ")";

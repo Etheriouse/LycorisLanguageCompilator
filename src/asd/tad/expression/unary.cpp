@@ -1,6 +1,10 @@
 #include "unary.h"
 #include "../../../visitor/type_checker.h"
 
+Unary::~Unary() {
+    delete a;
+}
+
 std::string Unary::to_string() const
 {
     return "Unary(" + (op.to_string()) + ", " + a->to_string() + ")";

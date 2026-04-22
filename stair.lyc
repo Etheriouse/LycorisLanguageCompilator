@@ -1,4 +1,4 @@
-void printf(int x[7][4]) {}
+void printf(char x[5][5]) {}
 
 int main() {
     int width = 5, heigth = 5;
@@ -16,6 +16,7 @@ int main() {
             printf(content[i][y]);
         }
     }
+
 }
 
 int fact(int i) {

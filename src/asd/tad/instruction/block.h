@@ -11,6 +11,7 @@ class Block : public Instruction
 {
 public:
     Block(std::vector<Instruction *> instrs) : instructions(instrs) {};
+    ~Block();
     std::string to_string() const override;
     void pretty_print(int ident) const override;
     bool accept(TypeChecker *visitor, Type type) override;

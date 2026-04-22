@@ -17,15 +17,13 @@ int main(int argc, char const *argv[])
 {
     if (argc > 1)
     {
-        SymboleTable *table = new SymboleTable();
         BuilderAsd ba;
         Program *p = ba.build(argv[1]);
-        TypeChecker *tc = new TypeChecker(table);
+        TypeChecker tc;
         std::cout << p->to_string() << std::endl;
         p->pretty_print(0);
-        tc->check(p);
-        table->pretty_print();
-        delete table;
+        std::cout << "is correct " << tc.check(p) << std::endl;
+        delete p;
     }
     return 0;
 }

@@ -21,6 +21,7 @@ public:
     } Declare;
 
     Declaration(Type type, std::vector<Declare> content) : type(type), variables(content) {};
+    ~Declaration();
     std::string to_string() const override;
     void pretty_print(int ident) const override;
     bool accept(TypeChecker *visitor, Type type) override;

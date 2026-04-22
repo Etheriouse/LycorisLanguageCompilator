@@ -1,6 +1,11 @@
 #include "while.h"
 #include "../../../visitor/type_checker.h"
 
+While::~While() {
+    delete condition;
+    delete block;
+}
+
 std::string While::to_string() const
 {
     return "While(" + condition->to_string() + ", " + block->to_string() + ")";

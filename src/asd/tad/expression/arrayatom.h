@@ -10,6 +10,7 @@ class ArrayAtom : public Expression
 {
 public:
     ArrayAtom(std::string name, std::vector<Expression *> expr) : name(name), index(expr) {};
+    ~ArrayAtom();
     std::string to_string() const override;
     void pretty_print() const override;
     bool accept(TypeCheckerExpr *visitor, Type type) override;

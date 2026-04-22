@@ -1,6 +1,12 @@
 #include "ternary.h"
 #include "../../../visitor/type_checker.h"
 
+Ternary::~Ternary() {
+    delete cond;
+    delete a;
+    delete b;
+}
+
 std::string Ternary::to_string() const
 {
     return "Ternary(" + cond->to_string() + ", " + a->to_string() + ", " + b->to_string() + ")";

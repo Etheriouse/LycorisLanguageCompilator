@@ -3,6 +3,10 @@
 
 #define UNUSED(expr) (void)(expr)
 
+CallInstruction::~CallInstruction() {
+    delete call;
+}
+
 std::string CallInstruction::to_string() const
 {
     return call->to_string();

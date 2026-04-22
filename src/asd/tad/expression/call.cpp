@@ -1,6 +1,12 @@
 #include "call.h"
 #include "../../../visitor/type_checker.h"
 
+Call::~Call() {
+    for(auto param : parameters) {
+        delete param;
+    }
+}
+
 std::string Call::to_string() const
 {
     std::string s = "Call(";

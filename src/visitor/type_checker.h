@@ -15,7 +15,8 @@ class SymboleTable;
 class TypeChecker : public VisitorInstr<bool, Type>
 {
 public:
-    TypeChecker(SymboleTable *table);
+    TypeChecker();
+    ~TypeChecker();
     bool check(Program *node);
     bool visitIf(If *node, Type type);
     bool visitWhile(While *node, Type type);
@@ -34,6 +35,7 @@ class TypeCheckerExpr : public VisitorExpr<bool, Type>
 {
 public:
     TypeCheckerExpr(SymboleTable *table);
+    ~TypeCheckerExpr() = default;
     bool visitString(String *node, Type type);
     bool visitInteger(Integer *node, Type type);
     bool visitFloat(Float *node, Type type);

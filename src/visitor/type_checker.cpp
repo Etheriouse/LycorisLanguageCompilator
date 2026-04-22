@@ -3,9 +3,14 @@
 
 #define UNUSED(expr) (void)(expr)
 
-TypeChecker::TypeChecker(SymboleTable *table)
+TypeChecker::TypeChecker()
 {
-    this->table = table;
+    this->table = new SymboleTable();
+}
+
+TypeChecker::~TypeChecker()
+{
+    delete table;
 }
 
 bool TypeChecker::check(Program *node)
@@ -13,7 +18,8 @@ bool TypeChecker::check(Program *node)
     for (auto def : node->defs)
     {
         vector<SymboleTable::Parameter> p;
-        for(auto pp : def->parameters) {
+        for (auto pp : def->parameters)
+        {
             p.push_back({pp.name, pp.t});
         }
         table->addf((SymboleTable::Function){def->t, p}, def->name);
@@ -30,6 +36,8 @@ bool TypeChecker::visitIf(If *node, Type type)
     result &= node->ifblock->accept(this, type);
     if (node->elseblock.isPresent())
         result &= node->elseblock.get()->accept(this, type);
+
+    delete tce;
     return result;
 }
 
@@ -40,6 +48,7 @@ bool TypeChecker::visitWhile(While *node, Type type)
     if (!result)
         errorf("While condition, invalide type bool: %s", node->to_string().c_str());
     result &= node->block->accept(this, type);
+    delete tce;
     return result;
 }
 
@@ -54,11 +63,13 @@ bool TypeChecker::visitAffectation(Affectation *node, Type type)
     if (base == Type::Null())
     {
         errorf("Affectation expression, to many index: %s", node->to_string().c_str());
+        delete tce;
         return false;
     }
     bool result = node->value->accept(tce, base);
     if (!result)
         errorf("Affectation expression, invalide type to variable: %s", node->to_string().c_str());
+    delete tce;
     return result;
 }
 
@@ -74,6 +85,7 @@ bool TypeChecker::visitDeclaration(Declaration *node, Type type)
             result &= d.value.get()->accept(tce, node->type);
             if (!result)
                 errorf("Declaration expression, invalide type to variable: %s", node->to_string().c_str());
+            delete tce;
         }
     }
     return result;
@@ -88,6 +100,7 @@ bool TypeChecker::visitFor(For *node, Type type)
     if (!result)
     {
         errorf("For declaration expression, invalide type to variable: %s", node->to_string().c_str());
+        delete tce;
         return result;
     }
     if (node->condition.isPresent())
@@ -95,6 +108,7 @@ bool TypeChecker::visitFor(For *node, Type type)
     if (!result)
     {
         errorf("For condition expression, invalide type bool: %s", node->to_string().c_str());
+        delete tce;
         return result;
     }
     if (node->afterOperation.isPresent())
@@ -102,23 +116,29 @@ bool TypeChecker::visitFor(For *node, Type type)
     if (!result)
     {
         errorf("For affectation expression, invalide type to variable: %s", node->to_string().c_str());
+        delete tce;
         return result;
     }
     result &= node->block->accept(this, type);
+    delete tce;
     return result;
 }
 
 bool TypeChecker::visitReturn(Return *node, Type type)
 {
     TypeCheckerExpr *tce = new TypeCheckerExpr(table);
-    return node->value->accept(tce, type);
+    bool result = node->value->accept(tce, type);
+    delete tce;
+    return result;
 }
 
 bool TypeChecker::visitCallInstruction(CallInstruction *node, Type type)
 {
     TypeCheckerExpr *tce = new TypeCheckerExpr(table);
     Type tf = this->table->getTypef(node->call->name);
-    return node->call->accept(tce, tf);
+    bool result = node->call->accept(tce, tf);
+    delete tce;
+    return result;
 }
 
 bool TypeChecker::visitBlock(Block *node, Type type)
@@ -135,6 +155,7 @@ TypeCheckerExpr::TypeCheckerExpr(SymboleTable *table)
 {
     this->table = table;
 }
+
 
 bool TypeCheckerExpr::visitString(String *node, Type type)
 {

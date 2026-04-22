@@ -1,6 +1,11 @@
 #include "binop.h"
 #include "../../../visitor/type_checker.h"
 
+Binop::~Binop() {
+    delete a;
+    delete b;
+}
+
 std::string Binop::to_string() const
 {
     return "Binop(" + (op.to_string()) + ", " + a->to_string() + ", " + b->to_string() + ")";

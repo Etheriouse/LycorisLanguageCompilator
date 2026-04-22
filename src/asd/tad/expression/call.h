@@ -10,6 +10,7 @@ class Call : public Expression
 {
 public:
     Call(std::string name, std::vector<Expression *> list) : name(name), parameters(list) {};
+    ~Call();
     std::string to_string() const override;
     void pretty_print() const override;
     bool accept(TypeCheckerExpr *visitor, Type type) override;

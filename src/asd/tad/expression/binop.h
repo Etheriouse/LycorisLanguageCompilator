@@ -10,6 +10,7 @@ class Binop : public Expression
 {
 public:
     Binop(Operator op, Expression *expr1, Expression *expr2) : op(op), a(expr1), b(expr2) {};
+    ~Binop();
     std::string to_string() const override ;
     void pretty_print() const override;
     bool accept(TypeCheckerExpr *visitor, Type type) override;

@@ -12,6 +12,7 @@ class CallInstruction : public Instruction
 {
 public:
     CallInstruction(Call *c) : call(c) {};
+    ~CallInstruction();
     std::string to_string() const override;
     void pretty_print(int ident) const override;
     bool accept(TypeChecker *visitor, Type type) override;

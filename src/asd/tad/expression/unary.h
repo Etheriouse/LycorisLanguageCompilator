@@ -10,6 +10,7 @@ class Unary : public Expression
 {
 public:
     Unary(Operator op, Expression *expr) : op(op), a(expr) {};
+    ~Unary();
     std::string to_string() const override;
     void pretty_print() const override;
     bool accept(TypeCheckerExpr *visitor, Type type) override;

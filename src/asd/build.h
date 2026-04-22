@@ -29,9 +29,11 @@ public:
         lycorisParser parser(&tokens);
 
         antlr4::tree::ParseTree *tree = parser.prog();
-        BuilderAsd visit;
-        return any_cast<Program *>(visit.visit(tree));
-    }
+
+        return any_cast<Program *>(this->visit(tree));
+//        return new Program(std::vector<Definition*>());
+}
+
 
     std::any visitProg(lycorisParser::ProgContext *ctx) override
     {

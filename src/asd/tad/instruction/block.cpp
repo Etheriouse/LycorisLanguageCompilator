@@ -4,6 +4,12 @@
 
 #define tab "   "
 
+Block::~Block() {
+    for(auto type : instructions) {
+        delete type;
+    }
+}
+
 std::string Block::to_string() const
 {
     std::string str = "Block(";

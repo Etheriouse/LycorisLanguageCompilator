@@ -1,5 +1,9 @@
 #include "definition.h"
 
+Definition::~Definition() {
+    delete block;
+}
+
 std::string Definition::to_string() const
 {
     std::string str = "Definition(" + t.to_string() + ", " + name;

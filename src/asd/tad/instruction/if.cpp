@@ -1,6 +1,12 @@
 #include "if.h"
 #include "../../../visitor/type_checker.h"
 
+If::~If() {
+    delete condition;
+    delete ifblock;
+    if(elseblock.isPresent()) delete elseblock.get();
+}
+
 std::string If::to_string() const 
 {
     return "If(" + condition->to_string() + ", " + ifblock->to_string() + (elseblock.isPresent() ? ", " + elseblock.get()->to_string() + ")" : ")");

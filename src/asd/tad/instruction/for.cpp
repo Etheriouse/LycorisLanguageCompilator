@@ -2,6 +2,13 @@
 #include "../../../lib/utils.h"
 #include "../../../visitor/type_checker.h"
 
+For::~For() {
+    if(initIterator.isPresent()) delete initIterator.get();
+    if(condition.isPresent()) delete condition.get();
+    if(afterOperation.isPresent()) delete afterOperation.get();
+    delete block;
+}
+
 For::For(Declaration *decla, Expression *condition, Affectation *aff, Instruction *b)
 {
     this->initIterator = Optional<Declaration>::of(decla);

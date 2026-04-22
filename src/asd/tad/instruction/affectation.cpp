@@ -3,6 +3,13 @@
 
 #define UNUSED(expr) (void)(expr)
 
+Affectation::~Affectation() {
+    delete value;
+    for(auto ind : index) {
+        delete ind;
+    }
+}
+
 std::string Affectation::to_string() const
 {
     std::string str = "Affectation(" + name + ", ";

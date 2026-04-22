@@ -3,6 +3,12 @@
 
 #define UNUSED(expr) (void)(expr)
 
+Declaration::~Declaration() {
+    for(auto t : variables) {
+        if(t.value.isPresent()) delete t.value.get();
+    }
+}
+
 std::string Declaration::to_string() const
 {
     std::string str = "Declaration(" + type.to_string();

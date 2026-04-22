@@ -2,6 +2,11 @@
 #define UNUSED(expr) (void)(expr)
 
 
+Program::~Program() {
+    for(auto def : defs) {
+        delete def;
+    }
+}
 std::string Program::to_string() const
 {
     std::string str = "Program(";

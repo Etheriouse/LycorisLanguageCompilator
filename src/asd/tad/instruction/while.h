@@ -10,6 +10,7 @@ class While : public Instruction
 {
 public:
     While(Expression *expr, Instruction *inst) : condition(expr), block(inst) {}
+    ~While();
     std::string to_string() const override;
     void pretty_print(int ident) const override;
     bool accept(TypeChecker *visitor, Type type) override;

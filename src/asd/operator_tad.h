@@ -151,6 +151,9 @@ public:
         }
     }
 
+    ~Type() = default;
+
+
 private:
     raw raw;
     std::shared_ptr<Type> element;

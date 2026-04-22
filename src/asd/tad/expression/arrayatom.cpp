@@ -1,6 +1,12 @@
 #include "arrayatom.h"
 #include "../../../visitor/type_checker.h"
 
+ArrayAtom::~ArrayAtom() {
+    for(auto ind : index) {
+        delete ind;
+    }
+}
+
 std::string ArrayAtom::to_string() const
 {
     std::string s = "ArrayAtom(" + name;
